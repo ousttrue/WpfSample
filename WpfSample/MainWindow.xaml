@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
 xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"         
+xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"        
         xmlns:local="clr-namespace:WpfSample"
         Title="MainWindow" Height="350" Width="525"
         AllowDrop="True"
@@ -17,8 +18,27 @@ xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
     <i:Interaction.Behaviors>
         <local:FileDropBehavior Command="{Binding UriDropCommand}" />
     </i:Interaction.Behaviors>
-    <Grid>
-        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+    
+    <i:Interaction.Triggers>
+        <l:InteractionMessageTrigger MessageKey="Info" Messenger="{Binding Messenger}" >
+            <l:InformationDialogInteractionMessageAction />
+        </l:InteractionMessageTrigger>
+    </i:Interaction.Triggers>
+    
+    <StackPanel>
+        <TextBlock
             Text="{Binding Text}" />
-    </Grid>
+
+        <Button Content="開く" IsEnabled="{Binding OpenCommand.CanExecute}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="Click">
+                    <l:OpenFileDialogInteractionMessageAction>
+                        <l:DirectInteractionMessage CallbackCommand="{Binding OpenCommand}">
+                            <l:OpeningFileSelectionMessage Filter="すべてのファイル(*.*)|*.*" Title="ファイルを開く" MultiSelect="True"/>
+                        </l:DirectInteractionMessage>
+                    </l:OpenFileDialogInteractionMessageAction>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </Button>
+    </StackPanel>
 </Window>
