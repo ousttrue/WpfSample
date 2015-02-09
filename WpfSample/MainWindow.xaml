@@ -16,7 +16,7 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
     </Window.DataContext>
     
     <i:Interaction.Behaviors>
-        <local:FileDropBehavior Command="{Binding UriDropCommand}" />
+        <local:FileDropBehavior Command="{Binding AddItemsCommand}" />
     </i:Interaction.Behaviors>
     
     <i:Interaction.Triggers>
@@ -25,20 +25,31 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
         </l:InteractionMessageTrigger>
     </i:Interaction.Triggers>
     
-    <StackPanel>
-        <TextBlock
-            Text="{Binding Text}" />
-
-        <Button Content="開く" IsEnabled="{Binding OpenCommand.CanExecute}">
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="Click">
-                    <l:OpenFileDialogInteractionMessageAction>
-                        <l:DirectInteractionMessage CallbackCommand="{Binding OpenCommand}">
-                            <l:OpeningFileSelectionMessage Filter="すべてのファイル(*.*)|*.*" Title="ファイルを開く" MultiSelect="True"/>
-                        </l:DirectInteractionMessage>
-                    </l:OpenFileDialogInteractionMessageAction>
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
-        </Button>
-    </StackPanel>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="ファイル">
+                <MenuItem Header="開く">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="Click">
+                            <l:OpenFileDialogInteractionMessageAction>
+                                <l:DirectInteractionMessage CallbackCommand="{Binding OpenCommand}">
+                                    <l:OpeningFileSelectionMessage Filter="すべてのファイル(*.*)|*.*" Title="ファイルを開く" MultiSelect="True"/>
+                                </l:DirectInteractionMessage>
+                            </l:OpenFileDialogInteractionMessageAction>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+        
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+            <Button Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
+            <Button Command="{Binding ClearItemsCommand}">Clear</Button>
+        </StackPanel>
+        
+        <ListBox ItemsSource="{Binding Items}"
+                 SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                 >            
+        </ListBox>
+    </DockPanel>
 </Window>

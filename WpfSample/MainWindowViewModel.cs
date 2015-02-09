@@ -1,37 +1,46 @@
 ﻿using Codeplex.Reactive;
+using Codeplex.Reactive.Extensions;
 using Livet.Commands;
 using Livet.Messaging;
 using Livet.Messaging.IO;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Reactive.Linq;
+using System.Collections.Specialized;
+
 
 namespace WpfSample
 {
     class MainWindowViewModel: Livet.ViewModel
     {
-        String m_text;
-        public String Text
+        public ObservableCollection<Uri> Items { get; private set; }
+
+        Uri m_selectedItem;
+        public Uri SelectedItem
         {
-            get { return m_text; }
-            private set {
-                if (m_text == value) return;
-                m_text = value;
-                RaisePropertyChanged("Text");
+            get { return m_selectedItem; }
+            set
+            {
+                if (m_selectedItem == value) return;
+                m_selectedItem = value;
+                RaisePropertyChanged("SelectedItem");
             }
         }
 
-        public ReactiveCommand UriDropCommand { get; private set; }
-        void UriDrop(Object arg)
+        public ReactiveCommand AddItemsCommand { get; private set; }
+        void AddItems(Object arg)
         {
             var urilist = (IEnumerable<Uri>)arg;
 
-            Text = "Droped files is ...\n" + String.Join("\n", urilist);
-
-            Messenger.Raise(new InformationMessage(Text, "Dropped", MessageBoxImage.Information, "Info"));
+            foreach (var uri in urilist)
+            {
+                Items.Add(uri);
+            }
         }
 
         public ListenerCommand<OpeningFileSelectionMessage> OpenCommand { get; private set; }
@@ -43,15 +52,38 @@ namespace WpfSample
                 return;
             }
 
-            UriDrop(m.Response.Select(f => new Uri(f)));
+            AddItems(m.Response.Select(f => new Uri(f)));
+        }
+
+        public ReactiveCommand ClearItemsCommand { get; private set; }
+        void ClearItems(Object _)
+        {
+            Items.Clear();
+        }
+
+        public ReactiveCommand RemoveSelectedItemCommand { get; private set; }
+        void RemoveSelectedItem(Object _)
+        {
+            Items.Remove(SelectedItem);
         }
 
         public MainWindowViewModel()
         {
-            Text = "Drop File !";
+            Items = new ObservableCollection<Uri>();
 
-            UriDropCommand = new ReactiveCommand();
-            UriDropCommand.Subscribe(UriDrop);
+            AddItemsCommand = new ReactiveCommand();
+            AddItemsCommand.Subscribe(AddItems);
+
+            var hasAnyItem = Observable.FromEvent<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(
+                h => (o, e) => h(e), h => Items.CollectionChanged += h, h => Items.CollectionChanged -= h)
+                .Select(_ => Items.Any())
+                ;
+            ClearItemsCommand = hasAnyItem.ToReactiveCommand(false);
+            ClearItemsCommand.Subscribe(ClearItems);
+
+            var hasSelectedItem = this.ObserveProperty(o => o.SelectedItem).Select(item => item != null);
+            RemoveSelectedItemCommand = hasSelectedItem.ToReactiveCommand(false);
+            RemoveSelectedItemCommand.Subscribe(RemoveSelectedItem);
 
             OpenCommand = new ListenerCommand<OpeningFileSelectionMessage>(Open, () => true);
         }
