@@ -4,6 +4,7 @@
 xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
 xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"         
 xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"        
+        xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:local="clr-namespace:WpfSample"
         Title="MainWindow" Height="350" Width="525"
         AllowDrop="True"
@@ -24,7 +25,7 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
             <l:InformationDialogInteractionMessageAction />
         </l:InteractionMessageTrigger>
     </i:Interaction.Triggers>
-    
+
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="ファイル">
@@ -41,15 +42,32 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
                 </MenuItem>
             </MenuItem>
         </Menu>
-        
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-            <Button Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
-            <Button Command="{Binding ClearItemsCommand}">Clear</Button>
-        </StackPanel>
-        
-        <ListBox ItemsSource="{Binding Items}"
-                 SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                 >            
-        </ListBox>
+
+        <avalonDock:DockingManager x:Name="_dockingManager">
+            <avalonDock:LayoutRoot>
+                <avalonDock:LayoutPanel Orientation="Horizontal">
+                    <avalonDock:LayoutDocumentPane>
+                        <!-- ドキュメント1 -->
+                        <avalonDock:LayoutDocument Title="Document1">
+                            <ListBox ItemsSource="{Binding Items}"
+                             SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                             >
+                            </ListBox>
+                        </avalonDock:LayoutDocument>
+                    </avalonDock:LayoutDocumentPane>
+                    <avalonDock:LayoutAnchorablePane DockWidth="150">
+                        <!-- ツールウィンドウ1 -->
+                        <avalonDock:LayoutAnchorable Title="ToolWindow1">
+                            <StackPanel>
+                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                    <Button Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
+                                    <Button Command="{Binding ClearItemsCommand}">Clear</Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </avalonDock:LayoutAnchorable>
+                    </avalonDock:LayoutAnchorablePane>
+                </avalonDock:LayoutPanel>
+            </avalonDock:LayoutRoot>
+        </avalonDock:DockingManager>
     </DockPanel>
 </Window>
