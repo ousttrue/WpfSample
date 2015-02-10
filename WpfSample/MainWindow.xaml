@@ -24,6 +24,13 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
         <l:InteractionMessageTrigger MessageKey="Info" Messenger="{Binding Messenger}" >
             <l:InformationDialogInteractionMessageAction />
         </l:InteractionMessageTrigger>
+
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding LoadLayoutCommand}" CommandParameter="{Binding ElementName=_dockingManager}"/>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Unloaded">
+            <i:InvokeCommandAction Command="{Binding SaveLayoutCommand}" CommandParameter="{Binding ElementName=_dockingManager}"/>
+        </i:EventTrigger>
     </i:Interaction.Triggers>
 
     <DockPanel>
@@ -41,6 +48,13 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
                     </i:Interaction.Triggers>
                 </MenuItem>
             </MenuItem>
+
+            <MenuItem Header="表示">
+                <MenuItem 
+                    Header="ToolWindow1"
+                    IsCheckable="True"
+                    IsChecked="{Binding IsVisible, ElementName=_toolWindow1}" />
+            </MenuItem>
         </Menu>
 
         <avalonDock:DockingManager x:Name="_dockingManager">
@@ -48,7 +62,7 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
                 <avalonDock:LayoutPanel Orientation="Horizontal">
                     <avalonDock:LayoutDocumentPane>
                         <!-- ドキュメント1 -->
-                        <avalonDock:LayoutDocument Title="Document1">
+                        <avalonDock:LayoutDocument Title="Document1" CanClose="False" CanFloat="False" ContentId="Document">
                             <ListBox ItemsSource="{Binding Items}"
                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                              >
@@ -57,7 +71,7 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
                     </avalonDock:LayoutDocumentPane>
                     <avalonDock:LayoutAnchorablePane DockWidth="150">
                         <!-- ツールウィンドウ1 -->
-                        <avalonDock:LayoutAnchorable Title="ToolWindow1">
+                        <avalonDock:LayoutAnchorable x:Name="_toolWindow1" Title="ToolWindow1" ContentId="Tool1">
                             <StackPanel>
                                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                                     <Button Command="{Binding RemoveSelectedItemCommand}">Remove</Button>

@@ -12,6 +12,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Reactive.Linq;
 using System.Collections.Specialized;
+using Xceed.Wpf.AvalonDock;
+using Xceed.Wpf.AvalonDock.Layout;
+using System.Windows.Controls;
+using Xceed.Wpf.AvalonDock.Layout.Serialization;
+using System.IO;
 
 
 namespace WpfSample
@@ -65,6 +70,69 @@ namespace WpfSample
         void RemoveSelectedItem(Object _)
         {
             Items.Remove(SelectedItem);
+        }
+
+        String LayoutFile { 
+            get { 
+                return System.IO.Path.ChangeExtension(
+                    Environment.GetCommandLineArgs()[0]
+                    , ".AvalonDock.config"
+                    );
+            } 
+        }
+
+        ReactiveCommand m_loadLayoutCommand;
+        public ReactiveCommand LoadLayoutCommand
+        {
+            get
+            {
+                if (m_loadLayoutCommand == null)
+                {
+                    m_loadLayoutCommand = new ReactiveCommand();
+                    m_loadLayoutCommand.Subscribe(LoadLayout);
+                }
+                return m_loadLayoutCommand;
+            }
+        }
+        void LoadLayout(Object arg)
+        {
+            var dockManager=(DockingManager)arg;
+            var currentContentsList = dockManager.Layout.Descendents().OfType<LayoutContent>().Where(c => c.ContentId != null).ToArray();          
+            var serializer = new XmlLayoutSerializer(dockManager);
+            //serializer.LayoutSerializationCallback += (s, args) =>
+            //    {
+            //        var prevContent = currentContentsList.FirstOrDefault(c => c.ContentId == args.Model.ContentId);
+            //        if (prevContent != null)
+            //            args.Content = prevContent.Content;
+            //    };
+            try
+            {
+                using (var stream = new StreamReader(LayoutFile))
+                    serializer.Deserialize(stream);
+            }
+            catch(FileNotFoundException ex)
+            {
+
+            }
+        }
+
+        ReactiveCommand m_saveLayoutCommand;
+        public ReactiveCommand SaveLayoutCommand {
+            get {
+                if(m_saveLayoutCommand == null)
+                {
+                    m_saveLayoutCommand = new ReactiveCommand();
+                    m_saveLayoutCommand.Subscribe(SaveLayout);
+                }
+                return m_saveLayoutCommand; 
+            }
+        }
+        void SaveLayout(Object arg)
+        {
+            var dockManager = (DockingManager)arg;
+            var serializer = new XmlLayoutSerializer(dockManager);
+            using (var stream = new StreamWriter(LayoutFile))
+                serializer.Serialize(stream);
         }
 
         public MainWindowViewModel()
