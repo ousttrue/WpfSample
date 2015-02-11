@@ -31,7 +31,7 @@ namespace AvalonDockUtil
             set;
         }
 
-        public Style FileStyle
+        public Style DocumentStyle
         {
             get;
             set;
@@ -43,7 +43,7 @@ namespace AvalonDockUtil
                 return ToolStyle;
 
             if (item is DocumentViewModelBase)
-                return FileStyle;
+                return DocumentStyle;
 
             return base.SelectStyle(item, container);
         }

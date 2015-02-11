@@ -13,6 +13,7 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
     <Window.Resources>
         <local:MainWindowViewModel x:Key="ViewModel" />
         <util:ActiveDocumentConverter x:Key="ActiveDocumentConverter"/>
+        <avalonDock:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
 
         <DataTemplate DataType="{x:Type local:DocumentViewModel}">
             <ListBox ItemsSource="{Binding Items}"
@@ -53,8 +54,8 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
         <DataTemplate DataType="{x:Type local:StatusToolViewModel}">
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Button Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
-                    <Button Command="{Binding ClearItemsCommand}">Clear</Button>
+                    <Button Command="{Binding Document.RemoveSelectedItemCommand}">Remove</Button>
+                    <Button Command="{Binding Document.ClearItemsCommand}">Clear</Button>
                 </StackPanel>
             </StackPanel>
         </DataTemplate>
@@ -66,14 +67,12 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
     
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
             <l:DataContextDisposeAction />
         </i:EventTrigger>
         <i:EventTrigger EventName="Loaded">
             <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
         </i:EventTrigger>
-        <i:EventTrigger EventName="Unloaded">
-            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
-        </i:EventTrigger>        
 
         <l:InteractionMessageTrigger MessageKey="MessageDialog" Messenger="{Binding Messenger}" >
             <l:InformationDialogInteractionMessageAction />
@@ -118,10 +117,41 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
                                    DocumentsSource="{Binding Documents}"
                                    ActiveContent="{Binding ActiveDocument, Mode=TwoWay, Converter={StaticResource ActiveDocumentConverter}}"                                   
                                    >
+            <avalonDock:DockingManager.LayoutItemContainerStyleSelector>
+                <util:PanesStyleSelector>
+                    <util:PanesStyleSelector.ToolStyle>
+                        <Style TargetType="{x:Type avalonDock:LayoutAnchorableItem}">
+                            <Setter Property="Title" Value="{Binding Model.Title}"/>
+                            <Setter Property="IconSource" Value="{Binding Model.IconSource}"/>
+                            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Mode=TwoWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
+                            <Setter Property="ContentId" Value="{Binding Model.ContentId}"/>
+                            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay}"/>
+                            <Setter Property="IsActive" Value="{Binding Model.IsActive, Mode=TwoWay}"/>
+                        </Style>
+                    </util:PanesStyleSelector.ToolStyle>
+                    <util:PanesStyleSelector.DocumentStyle>
+                        <Style TargetType="{x:Type avalonDock:LayoutItem}">
+                            <Setter Property="Title" Value="{Binding Model.Title}"/>
+                            <Setter Property="ToolTip" Value="{Binding Model.FilePath}"/>
+                            <Setter Property="CloseCommand" Value="{Binding Model.CloseCommand}"/>
+                            <Setter Property="IconSource" Value="{Binding Model.IconSource}"/>
+                            <Setter Property="ContentId" Value="{Binding Model.ContentId}"/>
+                        </Style>
+                    </util:PanesStyleSelector.DocumentStyle>
+                </util:PanesStyleSelector>
+            </avalonDock:DockingManager.LayoutItemContainerStyleSelector>
+            
             <avalonDock:LayoutRoot>
-                <avalonDock:LayoutPanel Orientation="Horizontal">
-                    <avalonDock:LayoutDocumentPane/>
-                    <avalonDock:LayoutAnchorablePane DockWidth="150"/>
+                <avalonDock:LayoutPanel Orientation="Vertical">
+                    <avalonDock:LayoutPanel Orientation="Horizontal">
+                        <avalonDock:LayoutDocumentPane />
+                        <avalonDock:LayoutAnchorablePane DockWidth="150">
+                            <avalonDock:LayoutAnchorable ContentId="tool:Status" />
+                        </avalonDock:LayoutAnchorablePane>
+                    </avalonDock:LayoutPanel>
+                    <avalonDock:LayoutAnchorablePane DockHeight="80" >
+                        <avalonDock:LayoutAnchorable ContentId="tool:Message" />
+                    </avalonDock:LayoutAnchorablePane>
                 </avalonDock:LayoutPanel>
             </avalonDock:LayoutRoot>
         </avalonDock:DockingManager>

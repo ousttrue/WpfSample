@@ -19,9 +19,11 @@ namespace AvalonDockUtil
                 if (_filePath != value)
                 {
                     _filePath = value;
+                    Title = FileName;
                     RaisePropertyChanged("FilePath");
                     RaisePropertyChanged("FileName");
                     RaisePropertyChanged("Title");
+                    RaisePropertyChanged("ContentId");
                 }
             }
         }
@@ -171,6 +173,13 @@ namespace AvalonDockUtil
             Save();
         }
         #endregion
+
+        public override string ContentId
+        {
+            get {
+                return FilePath;
+            }
+        }
 
         abstract public void Load(String path);
         void Save(bool AsFlag)

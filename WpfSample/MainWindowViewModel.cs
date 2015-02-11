@@ -26,7 +26,9 @@ namespace WpfSample
 
         public override void DefaultLayout()
         {
+            ClearTools();
             AddTool(new StatusToolViewModel());
+            AddTool(new MessageToolViewModel());
         }
 
         public override AvalonDockUtil.DocumentViewModelBase CreateDocument()
@@ -51,7 +53,24 @@ namespace WpfSample
                     return;
                 }
             }
-            //throw new NotImplementedException();
+
+            if(e.Model is LayoutDocument)
+            {
+                var path = e.Model.ContentId;
+                if (!String.IsNullOrEmpty(path) && System.IO.File.Exists(path))
+                {
+                    var document = OpenDocumentFromFilePath(path);
+                    e.Content = document;
+                }
+                else
+                {
+                    var document=NewDocument();
+                    e.Content = document;
+                }
+                return;
+            }
+
+            ErrorMessage(new Exception("Unknown ContentID: "+e.Model.ContentId));
         }
     }
 }

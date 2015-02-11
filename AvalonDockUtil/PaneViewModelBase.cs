@@ -2,7 +2,7 @@
 
 namespace AvalonDockUtil
 {
-    public class PaneViewModelBase : Livet.ViewModel
+    public abstract class PaneViewModelBase : Livet.ViewModel
     {
         #region Title
         private string _title = null;
@@ -19,17 +19,7 @@ namespace AvalonDockUtil
         #endregion
 
         #region ContentId
-        private string _contentId = null;
-        public string ContentId
-        {
-            get { return _contentId; }
-            set
-            {
-                if (_contentId == value) return;
-                _contentId = value;
-                RaisePropertyChanged("ContentId");
-            }
-        }
+        public abstract string ContentId { get; }
         #endregion
 
         #region IsSelected

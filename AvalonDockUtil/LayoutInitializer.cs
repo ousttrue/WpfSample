@@ -42,7 +42,6 @@ namespace AvalonDockUtil
             }
 
             return false;
-
         }
 
 

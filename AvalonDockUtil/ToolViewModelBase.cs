@@ -33,10 +33,14 @@ namespace AvalonDockUtil
         }
         #endregion
 
+        public override string ContentId
+        {
+            get { return "tool:" + Title; }
+        }
+
         public ToolViewModelBase(string title)
         {
             Title = title;
-            ContentId = "tool:" + title;
         }
     }
 }

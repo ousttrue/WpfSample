@@ -64,6 +64,11 @@ namespace AvalonDockUtil
             }
         }
 
+        protected void ClearTools()
+        {
+            m_tools.Clear();
+        }
+
         protected void AddTool(ToolViewModelBase tool)
         {
             m_tools.Add(tool);
@@ -76,7 +81,7 @@ namespace AvalonDockUtil
         {
             get
             {
-                if (_newCommand == null) _newCommand = new RelayCommand(p => NewDocument(p));
+                if (_newCommand == null) _newCommand = new RelayCommand(_ => NewDocument());
                 return _newCommand;
             }
         }
@@ -88,19 +93,23 @@ namespace AvalonDockUtil
         {
             get
             {
-                if (_openCommand == null) _openCommand = new RelayCommand(OpenDocument);
+                if (_openCommand == null) _openCommand = new RelayCommand(_ => {
+                    Messenger.Raise(OpenDialog);
+                    if(OpenDialog.Response==null)return;
+                    OpenDocumentFromFilePath(OpenDialog.Response[0]);
+                });
                 return _openCommand;
             }
         }
         #endregion
 
         #region MessageDialog
-        void InfoMessage(String message)
+        protected void InfoMessage(String message)
         {
             Messenger.Raise(new InformationMessage(message, "Info", MessageBoxImage.Information, "MessageDialog"));
         }
 
-        void ErrorMessage(Exception ex)
+        protected void ErrorMessage(Exception ex)
         {
             Messenger.Raise(new InformationMessage(ex.Message, "Error", MessageBoxImage.Error, "MessageDialog"));
         }
@@ -125,9 +134,7 @@ namespace AvalonDockUtil
 
         public void OnOpenDialog(OpeningFileSelectionMessage msg)
         {
-            if (msg.Response == null) return;
-
-            CreateDocumentFromFilePath(msg.Response[0]);
+            // do nothing
         }
         #endregion
 
@@ -208,6 +215,8 @@ namespace AvalonDockUtil
 
         public void LoadLayout(DockingManager dockManager)
         {
+            DefaultLayout();
+
             var layoutSerializer = new XmlLayoutSerializer(dockManager);
             layoutSerializer.LayoutSerializationCallback += MatchLayoutContent;
             try
@@ -216,7 +225,6 @@ namespace AvalonDockUtil
             }
             catch (Exception ex)
             {
-                DefaultLayout();
             }
         }
 
@@ -231,19 +239,12 @@ namespace AvalonDockUtil
         #endregion
 
         #region DocumentsLogic
-        public DocumentViewModelBase NewDocument(object parameter)
+        public DocumentViewModelBase NewDocument()
         {
             var document = CreateDocument();
             AddDocument(document);
             ActiveDocument = document;
             return document;
-        }
-
-        private void OpenDocument(object parameter)
-        {
-            var dlg = new OpenFileDialog();
-            if (!dlg.ShowDialog().GetValueOrDefault()) return;
-            var document=OpenDocumentFromFilePath(dlg.FileName);
         }
 
         public DocumentViewModelBase OpenDocumentFromFilePath(String filepath)
