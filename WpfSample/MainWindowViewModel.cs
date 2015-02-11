@@ -1,21 +1,113 @@
-﻿using Codeplex.Reactive;
-using Codeplex.Reactive.Extensions;
-using Livet.Commands;
+﻿using Livet.Commands;
 using Livet.Messaging;
 using Livet.Messaging.IO;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Text;
 using System.Windows;
+using System.Windows.Input;
 
 
 namespace WpfSample
 {
-    class MainWindowViewModel: Livet.ViewModel
+    /// <summary>
+    /// Livetのダイアログ４種類のヘルパー関数
+    /// </summary>
+    class MessagingViewModel : Livet.ViewModel
+    {
+        #region InformationMessage
+        protected void InfoDialog(String message)
+        {
+            Messenger.Raise(new InformationMessage(message, "Info", MessageBoxImage.Information, "Info"));
+        }
+
+        protected void ErrorDialog(Exception ex)
+        {
+            Messenger.Raise(new InformationMessage(ex.Message, "Error", MessageBoxImage.Error, "Info"));
+        }
+        #endregion
+
+        #region ConfirmationMessage
+        ConfirmationMessage m_confirmationMessage;
+        public ConfirmationMessage ConfirmationMessage
+        {
+            get { return m_confirmationMessage; }
+            set
+            {
+                if (m_confirmationMessage == value) return;
+                m_confirmationMessage = value;
+                RaisePropertyChanged("ConfirmationMessage");
+            }
+        }
+
+        protected bool ConfirmDialog(String text, String title)
+        {
+            ConfirmationMessage = new ConfirmationMessage(text, title
+                        , MessageBoxImage.Question, MessageBoxButton.YesNo, "Confirm");
+            Messenger.Raise(ConfirmationMessage);
+            return ConfirmationMessage.Response.HasValue && ConfirmationMessage.Response.Value;
+        }
+        #endregion
+
+        #region OpeningFileSelectionMessage
+        OpeningFileSelectionMessage m_openingFileSelectionMessage;
+        public OpeningFileSelectionMessage OpeningFileSelectionMessage
+        {
+            get { return m_openingFileSelectionMessage; }
+            private set
+            {
+                if (m_openingFileSelectionMessage == value) return;
+                m_openingFileSelectionMessage = value;
+                RaisePropertyChanged("OpeningFileSelectionMessage");
+            }
+        }
+        protected String[] OpenDialog(String title, bool multiSelect = false)
+        {
+            return OpenDialog(title, "すべてのファイル(*.*)|*.*", multiSelect);
+        }
+        protected String[] OpenDialog(String title, String filter, bool multiSelect)
+        {
+            OpeningFileSelectionMessage = new OpeningFileSelectionMessage("Open")
+            {
+                Title = title,
+                Filter = filter,
+                MultiSelect = multiSelect,
+            };
+            Messenger.Raise(OpeningFileSelectionMessage);
+            return OpeningFileSelectionMessage.Response;
+        }
+        #endregion
+
+        #region SavingFileSelectionMessage
+        SavingFileSelectionMessage m_savingFileSelectionMessage;
+        public SavingFileSelectionMessage SavingFileSelectionMessage
+        {
+            get{return m_savingFileSelectionMessage;}
+            set
+            {
+                if (m_savingFileSelectionMessage == value) return;
+                m_savingFileSelectionMessage = value;
+                RaisePropertyChanged("SavingFileSelectionMessage");
+            }
+        }
+
+        protected String SaveDialog(String title, string filename)
+        {
+            SavingFileSelectionMessage = new SavingFileSelectionMessage("Save")
+            {
+                Title = title,
+                FileName = String.IsNullOrEmpty(filename) ? "list.txt" : filename,
+            };
+            Messenger.Raise(SavingFileSelectionMessage);
+            return SavingFileSelectionMessage.Response != null ? SavingFileSelectionMessage.Response[0] : null;
+        }
+        #endregion
+    }
+
+
+    class MainWindowViewModel: MessagingViewModel
     {
         #region Items
         ObservableCollection<Uri> m_items;
@@ -27,6 +119,18 @@ namespace WpfSample
                     m_items = new ObservableCollection<Uri>();
                 }
                 return m_items;
+            }
+        }
+
+        bool m_hasAnyItem;
+        public bool HasAnyItem
+        {
+            get { return m_hasAnyItem; }
+            private set
+            {
+                if (m_hasAnyItem == value) return;
+                m_hasAnyItem = value;
+                RaisePropertyChanged("HasAnyItem");
             }
         }
 
@@ -42,21 +146,26 @@ namespace WpfSample
             }
         }
 
+        Boolean m_isDirty = false;
         public Boolean IsDirty
         {
-            get;
-            private set;
+            get { return m_isDirty; }
+            private set
+            {
+                if (m_isDirty == value) return;
+                m_isDirty = value;
+                RaisePropertyChanged("IsDirty");
+            }
         }
 
-        ReactiveCommand m_addItemsCommand;
-        public ReactiveCommand AddItemsCommand
+        ListenerCommand<IEnumerable<Uri>> m_addItemsCommand;
+        public ICommand AddItemsCommand
         {
             get
             {
                 if (m_addItemsCommand == null)
                 {
-                    m_addItemsCommand = new ReactiveCommand();
-                    m_addItemsCommand.Subscribe(AddItems);
+                    m_addItemsCommand = new ListenerCommand<IEnumerable<Uri>>(AddItems);
                 }
                 return m_addItemsCommand;
             }
@@ -71,44 +180,37 @@ namespace WpfSample
             IsDirty = true;
         }
 
-        ReactiveCommand m_clearItemsCommand;
-        public ReactiveCommand ClearItemsCommand
+        ViewModelCommand m_clearItemsCommand;
+        public ICommand ClearItemsCommand
         {
             get
             {
                 if (m_clearItemsCommand == null)
                 {
-                    var hasAnyItem = Observable.FromEvent<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(
-                        h => (o, e) => h(e), h => Items.CollectionChanged += h, h => Items.CollectionChanged -= h)
-                        .Select(_ => Items.Any())
-                        ;
-                    m_clearItemsCommand = hasAnyItem.ToReactiveCommand(false);
-                    m_clearItemsCommand.Subscribe(ClearItems);
+                    m_clearItemsCommand = new ViewModelCommand(ClearItems);
                 }
                 return m_clearItemsCommand;
             }
         }
-        void ClearItems(Object _)
+        void ClearItems()
         {
             Items.Clear();
             IsDirty = true;
         }
 
-        ReactiveCommand m_removeSelectedItemCommand;
-        public ReactiveCommand RemoveSelectedItemCommand
+        ViewModelCommand m_removeSelectedItemCommand;
+        public ICommand RemoveSelectedItemCommand
         {
             get
             {
                 if (m_removeSelectedItemCommand == null)
                 {
-                    var hasSelectedItem = this.ObserveProperty(o => o.SelectedItem).Select(item => item != null);
-                    m_removeSelectedItemCommand = hasSelectedItem.ToReactiveCommand(false);
-                    m_removeSelectedItemCommand.Subscribe(RemoveSelectedItem);
+                    m_removeSelectedItemCommand = new ViewModelCommand(RemoveSelectedItem);
                 }
                 return m_removeSelectedItemCommand;
             }
         }
-        void RemoveSelectedItem(Object _)
+        void RemoveSelectedItem()
         {
             Items.Remove(SelectedItem);
             IsDirty = true;
@@ -144,11 +246,19 @@ namespace WpfSample
             private set;
         }
 
-        void Save()
+        void Save(bool saveAs)
         {
-            if (String.IsNullOrEmpty(Path))
+            // 保存する
+            if (saveAs || String.IsNullOrEmpty(Path))
             {
-                Messenger.Raise(SaveDialog);
+                // 保存ファイ名が不明
+                var path = SaveDialog("Save", Path);
+                if (path == null)
+                {
+                    // キャンセルされた
+                    return;
+                }
+                Path = path;
             }
 
             try
@@ -157,7 +267,7 @@ namespace WpfSample
             }
             catch(Exception ex)
             {
-                ErrorMessage(ex);
+                ErrorDialog(ex);
             }
         }
 
@@ -170,38 +280,39 @@ namespace WpfSample
             }
             catch (Exception ex)
             {
-                ErrorMessage(ex);
+                ErrorDialog(ex);
             }
         }
 
-        ReactiveCommand m_saveCommand;
-        public ReactiveCommand SaveCommand
+        ViewModelCommand m_saveCommand;
+        public ICommand SaveCommand
         {
             get
             {
                 if (m_saveCommand == null)
                 {
-                    m_saveCommand = new ReactiveCommand();
-                    m_saveCommand.Subscribe(_ =>
+                    m_saveCommand = new ViewModelCommand(()=>
                     {
-                        Messenger.Raise(SaveDialog);
+                        Save(true);
                     });
                 }
                 return m_saveCommand;
             }
         }
 
-        ReactiveCommand m_openCommand;
-        public ReactiveCommand OpenCommand
+        ViewModelCommand m_openCommand;
+        public ICommand OpenCommand
         {
             get
             {
                 if (m_openCommand == null)
                 {
-                    m_openCommand = new ReactiveCommand();
-                    m_openCommand.Subscribe(_ =>
+                    m_openCommand = new ViewModelCommand(()=>
                     {
-                        Messenger.Raise(OpenDialog);
+                        var path = OpenDialog("Open");
+                        if (path == null) return;
+                        Path=path[0];
+                        Load();
                     });
                 }
                 return m_openCommand;
@@ -209,160 +320,48 @@ namespace WpfSample
         }
         #endregion
 
-        #region AddDialog
-        OpeningFileSelectionMessage m_addDialog;
-        public OpeningFileSelectionMessage AddDialog
-        {
-            get
-            {
-                if (m_addDialog == null)
-                {
-                    m_addDialog = new OpeningFileSelectionMessage("AddDialog")
-                    {
-                        Filter = "すべてのファイル(*.*)|*.*",
-                        Title = "AddDialog",
-                        MultiSelect = true
-                    };
-                }
-                return m_addDialog;
-            }
-        }
-
-        ReactiveCommand m_addDialogCommand;
-        public ReactiveCommand AddDialogCommand
+        #region AddDialogCommand
+        ViewModelCommand m_addDialogCommand;
+        public ICommand AddDialogCommand
         {
             get{
                 if (m_addDialogCommand == null)
                 {
-                    m_addDialogCommand = new ReactiveCommand();
-                    m_addDialogCommand.Subscribe(_ =>
+                    m_addDialogCommand = new ViewModelCommand(()=>
                     {
-                        Messenger.Raise(AddDialog);
+                        var response=OpenDialog("追加", true);
+                        if (response == null)
+                        {
+                            InfoDialog("キャンセルされました");
+                            return;
+                        }
+                        AddItems(response.Select(f => new Uri(f)));
                     });
                 }
                 return m_addDialogCommand;
             }
         }
-
-        public void OnAddDialog(OpeningFileSelectionMessage m)
-        {
-            if (m.Response == null)
-            {
-                InfoMessage("キャンセルされました");
-                return;
-            }
-
-            AddItems(m.Response.Select(f => new Uri(f)));
-        }
-        #endregion
-
-        #region MessageDialog
-        void InfoMessage(String message)
-        {
-            Messenger.Raise(new InformationMessage(message, "Info", MessageBoxImage.Information, "MessageDialog"));
-        }
-
-        void ErrorMessage(Exception ex)
-        {
-            Messenger.Raise(new InformationMessage(ex.Message, "Error", MessageBoxImage.Error, "MessageDialog"));
-        }
-        #endregion
-
-        #region SaveConfirmDialog
-        ConfirmationMessage m_saveConfirmDialog;
-        public ConfirmationMessage SaveConfirmDialog
-        {
-            get
-            {
-                if (m_saveConfirmDialog == null)
-                {
-                    m_saveConfirmDialog = new ConfirmationMessage("変更されています。保存しますか？", "確認"
-                        , MessageBoxImage.Question, MessageBoxButton.YesNo, "SaveConfirmDialog");
-                }
-                return m_saveConfirmDialog;
-            }
-        }
-
-        public void OnSaveConfirmDialog(ConfirmationMessage msg)
-        {
-            if (msg.Response.HasValue && msg.Response.Value)
-            {
-                // 保存する
-                if (String.IsNullOrEmpty(Path))
-                {
-                    // 名前不明
-                    Messenger.Raise(SaveDialog);
-                }
-                else
-                {
-                    Save();
-                }
-            }
-        }
-        #endregion
-
-        #region SaveDialog
-        SavingFileSelectionMessage m_saveDialog;
-        public SavingFileSelectionMessage SaveDialog
-        {
-            get
-            {
-                if (m_saveDialog == null)
-                {
-                    m_saveDialog = new SavingFileSelectionMessage("SaveDialog")
-                    {
-                        Title="SaveDialog",       
-                        FileName=String.IsNullOrEmpty(Path) ? "list.txt" : Path,
-                    };
-                }
-                return m_saveDialog;
-            }
-        }
-
-        public void OnSaveDialog(SavingFileSelectionMessage msg)
-        {
-            if (msg.Response == null) return;
-
-            Path = msg.Response[0];
-            Save();
-        }
-        #endregion
-
-        #region OpenDialog
-        OpeningFileSelectionMessage m_openDialog;
-        public OpeningFileSelectionMessage OpenDialog
-        {
-            get
-            {
-                if (m_openDialog == null)
-                {
-                    m_openDialog = new OpeningFileSelectionMessage("OpenDialog")
-                    {
-                        Title="OpenDialog",
-                    };
-                }
-                return m_openDialog;
-            }
-        }
-
-        public void OnOpenDialog(OpeningFileSelectionMessage msg)
-        {
-            if (msg.Response == null) return;
-
-            Path = msg.Response[0];
-            Load();
-        }
         #endregion
 
         public MainWindowViewModel()
         {
-            CompositeDisposable.Add(() =>
+            Items.CollectionChanged += (o, e) =>
             {
-                if (IsDirty)
+                HasAnyItem = Items.Any();
+            };
+
+            CompositeDisposable.Add(OnDispose);
+        }
+
+        void OnDispose()
+        {
+            if (IsDirty)
+            {
+                if (ConfirmDialog("変更されています。保存しますか？", "確認"))
                 {
-                    Messenger.Raise(SaveConfirmDialog);
+                    Save(false);
                 }
-            });
+            }
         }
     }
 }

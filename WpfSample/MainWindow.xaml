@@ -10,6 +10,7 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
         >
     <Window.Resources>
         <local:MainWindowViewModel x:Key="ViewModel" />
+        <local:NullToFalseConverter x:Key="NullToFalseConverter" />
     </Window.Resources>
     <Window.DataContext>
         <StaticResourceExtension ResourceKey="ViewModel" />
@@ -24,47 +25,33 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
             <l:DataContextDisposeAction />
         </i:EventTrigger>
 
-        <l:InteractionMessageTrigger MessageKey="MessageDialog" Messenger="{Binding Messenger}" >
+        <l:InteractionMessageTrigger MessageKey="Info" Messenger="{Binding Messenger}" >
             <l:InformationDialogInteractionMessageAction />
         </l:InteractionMessageTrigger>
 
-        <l:InteractionMessageTrigger MessageKey="AddDialog" Messenger="{Binding Messenger}" >
-            <l:OpenFileDialogInteractionMessageAction>
-                <l:DirectInteractionMessage CallbackMethodTarget="{Binding}" CallbackMethodName="OnAddDialog" 
-                                                            Message="{Binding AddDialog}"
-                                                            />
-            </l:OpenFileDialogInteractionMessageAction>
-        </l:InteractionMessageTrigger>
-
-        <l:InteractionMessageTrigger MessageKey="SaveConfirmDialog" Messenger="{Binding Messenger}" >
+        <l:InteractionMessageTrigger MessageKey="Confirm" Messenger="{Binding Messenger}" >
             <l:ConfirmationDialogInteractionMessageAction>
-                <l:DirectInteractionMessage CallbackMethodTarget="{Binding}" CallbackMethodName="OnSaveConfirmDialog"
-                                            Message="{Binding SaveConfirmDialog}"                                                                                         
-                                            />
+                <l:DirectInteractionMessage Message="{Binding ConfirmationMessage}"/>
             </l:ConfirmationDialogInteractionMessageAction>
         </l:InteractionMessageTrigger>
-
-        <l:InteractionMessageTrigger MessageKey="SaveDialog" Messenger="{Binding Messenger}" >
-            <l:SaveFileDialogInteractionMessageAction>
-                <l:DirectInteractionMessage CallbackMethodTarget="{Binding}" CallbackMethodName="OnSaveDialog"
-                                            Message="{Binding SaveDialog}"                                             
-                                            />
-            </l:SaveFileDialogInteractionMessageAction>
+        
+        <l:InteractionMessageTrigger MessageKey="Open" Messenger="{Binding Messenger}" >
+            <l:OpenFileDialogInteractionMessageAction>
+                <l:DirectInteractionMessage Message="{Binding OpeningFileSelectionMessage}" />
+            </l:OpenFileDialogInteractionMessageAction>
         </l:InteractionMessageTrigger>
 
-        <l:InteractionMessageTrigger MessageKey="OpenDialog" Messenger="{Binding Messenger}" >
-            <l:OpenFileDialogInteractionMessageAction>
-                <l:DirectInteractionMessage CallbackMethodTarget="{Binding}" CallbackMethodName="OnOpenDialog"
-                                            Message="{Binding OpenDialog}"                                             
-                                            />
-            </l:OpenFileDialogInteractionMessageAction>
+        <l:InteractionMessageTrigger MessageKey="Save" Messenger="{Binding Messenger}" >
+            <l:SaveFileDialogInteractionMessageAction>
+                <l:DirectInteractionMessage Message="{Binding SavingFileSelectionMessage}" />
+            </l:SaveFileDialogInteractionMessageAction>
         </l:InteractionMessageTrigger>
     </i:Interaction.Triggers>
     
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="ファイル">
-                <MenuItem Header="Save" Command="{Binding SaveCommand}" />
+                <MenuItem Header="Save" IsEnabled="{Binding IsDirty}" Command="{Binding SaveCommand}" />
                 <MenuItem Header="Open" Command="{Binding OpenCommand}" />
                 <Separator />
                 <MenuItem Header="Add" Command="{Binding AddDialogCommand}" />
@@ -72,8 +59,10 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
         </Menu>
         
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-            <Button Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
-            <Button Command="{Binding ClearItemsCommand}">Clear</Button>
+            <Button IsEnabled="{Binding SelectedItem, Converter={StaticResource NullToFalseConverter}}" 
+                    Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
+            <Button IsEnabled="{Binding HasAnyItem}"
+                Command="{Binding ClearItemsCommand}">Clear</Button>
         </StackPanel>
         
         <ListBox ItemsSource="{Binding Items}"
