@@ -5,52 +5,78 @@ xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
 xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"         
 xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"        
         xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
+        xmlns:util="clr-namespace:AvalonDockUtil;assembly=AvalonDockUtil"
         xmlns:local="clr-namespace:WpfSample"
         Title="MainWindow" Height="350" Width="525"
         AllowDrop="True"
         >
     <Window.Resources>
         <local:MainWindowViewModel x:Key="ViewModel" />
+        <util:ActiveDocumentConverter x:Key="ActiveDocumentConverter"/>
+
+        <DataTemplate DataType="{x:Type local:DocumentViewModel}">
+            <ListBox ItemsSource="{Binding Items}"
+                             SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                             >
+                <i:Interaction.Behaviors>
+                    <local:FileDropBehavior Command="{Binding AddItemsCommand}" />
+                </i:Interaction.Behaviors>
+                <i:Interaction.Triggers>
+                    <l:InteractionMessageTrigger MessageKey="AddDialog" Messenger="{Binding Messenger}" >
+                        <l:OpenFileDialogInteractionMessageAction>
+                            <l:DirectInteractionMessage CallbackMethodTarget="{Binding}" CallbackMethodName="OnAddDialog" 
+                                                            Message="{Binding AddDialog}"
+                                                            />
+                        </l:OpenFileDialogInteractionMessageAction>
+                    </l:InteractionMessageTrigger>
+
+                    <l:InteractionMessageTrigger MessageKey="SaveConfirmDialog" Messenger="{Binding Messenger}" >
+                        <l:ConfirmationDialogInteractionMessageAction>
+                            <l:DirectInteractionMessage CallbackMethodTarget="{Binding}" CallbackMethodName="OnSaveConfirmDialog"
+                                            Message="{Binding SaveConfirmDialog}"                                                                                         
+                                            />
+                        </l:ConfirmationDialogInteractionMessageAction>
+                    </l:InteractionMessageTrigger>
+
+                    <l:InteractionMessageTrigger MessageKey="SaveDialog" Messenger="{Binding Messenger}" >
+                        <l:SaveFileDialogInteractionMessageAction>
+                            <l:DirectInteractionMessage CallbackMethodTarget="{Binding}" CallbackMethodName="OnSaveDialog"
+                                            Message="{Binding SaveDialog}"                                             
+                                            />
+                        </l:SaveFileDialogInteractionMessageAction>
+                    </l:InteractionMessageTrigger>
+
+                </i:Interaction.Triggers>
+            </ListBox>
+        </DataTemplate>
+        
+        <DataTemplate DataType="{x:Type local:StatusToolViewModel}">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
+                    <Button Command="{Binding ClearItemsCommand}">Clear</Button>
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
     </Window.Resources>
     <Window.DataContext>
         <StaticResourceExtension ResourceKey="ViewModel" />
     </Window.DataContext>
     
-    <i:Interaction.Behaviors>
-        <local:FileDropBehavior Command="{Binding AddItemsCommand}" />
-    </i:Interaction.Behaviors>
     
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
             <l:DataContextDisposeAction />
         </i:EventTrigger>
+        <i:EventTrigger EventName="Loaded">
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Unloaded">
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
+        </i:EventTrigger>        
 
         <l:InteractionMessageTrigger MessageKey="MessageDialog" Messenger="{Binding Messenger}" >
             <l:InformationDialogInteractionMessageAction />
-        </l:InteractionMessageTrigger>
-
-        <l:InteractionMessageTrigger MessageKey="AddDialog" Messenger="{Binding Messenger}" >
-            <l:OpenFileDialogInteractionMessageAction>
-                <l:DirectInteractionMessage CallbackMethodTarget="{Binding}" CallbackMethodName="OnAddDialog" 
-                                                            Message="{Binding AddDialog}"
-                                                            />
-            </l:OpenFileDialogInteractionMessageAction>
-        </l:InteractionMessageTrigger>
-
-        <l:InteractionMessageTrigger MessageKey="SaveConfirmDialog" Messenger="{Binding Messenger}" >
-            <l:ConfirmationDialogInteractionMessageAction>
-                <l:DirectInteractionMessage CallbackMethodTarget="{Binding}" CallbackMethodName="OnSaveConfirmDialog"
-                                            Message="{Binding SaveConfirmDialog}"                                                                                         
-                                            />
-            </l:ConfirmationDialogInteractionMessageAction>
-        </l:InteractionMessageTrigger>
-
-        <l:InteractionMessageTrigger MessageKey="SaveDialog" Messenger="{Binding Messenger}" >
-            <l:SaveFileDialogInteractionMessageAction>
-                <l:DirectInteractionMessage CallbackMethodTarget="{Binding}" CallbackMethodName="OnSaveDialog"
-                                            Message="{Binding SaveDialog}"                                             
-                                            />
-            </l:SaveFileDialogInteractionMessageAction>
         </l:InteractionMessageTrigger>
 
         <l:InteractionMessageTrigger MessageKey="OpenDialog" Messenger="{Binding Messenger}" >
@@ -60,55 +86,42 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
                                             />
             </l:OpenFileDialogInteractionMessageAction>
         </l:InteractionMessageTrigger>
-
-        <i:EventTrigger EventName="Loaded">
-            <i:InvokeCommandAction Command="{Binding LoadLayoutCommand}" CommandParameter="{Binding ElementName=_dockingManager}"/>
-        </i:EventTrigger>
-        <i:EventTrigger EventName="Unloaded">
-            <i:InvokeCommandAction Command="{Binding SaveLayoutCommand}" CommandParameter="{Binding ElementName=_dockingManager}"/>
-        </i:EventTrigger>
     </i:Interaction.Triggers>
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="ファイル">
-                <MenuItem Header="Save" Command="{Binding SaveCommand}" />
+                <MenuItem Header="New" Command="{Binding NewCommand}" />
                 <MenuItem Header="Open" Command="{Binding OpenCommand}" />
                 <Separator />
-                <MenuItem Header="Add" Command="{Binding AddDialogCommand}" />
+                <MenuItem Header="Save" Command="{Binding ActiveDocument.SaveCommand}" />
+                <MenuItem Header="Close" Command="{Binding ActiveDocument.CloseCommand}" />
+                <MenuItem Header="Add" Command="{Binding ActiveDocument.AddDialogCommand}" />
             </MenuItem>
-
-            <MenuItem Header="表示">
-                <MenuItem 
-                    Header="ToolWindow1"
+            <MenuItem Header="表示" ItemsSource="{Binding Tools}">
+                <MenuItem.ItemTemplate>
+                    <DataTemplate>
+                        <MenuItem 
+                    Header="{Binding Title}"
                     IsCheckable="True"
-                    IsChecked="{Binding IsVisible, ElementName=_toolWindow1}" />
+                    IsChecked="{Binding IsVisible, Mode=TwoWay}" />
+                    </DataTemplate>
+                </MenuItem.ItemTemplate>
+            </MenuItem>
+            <MenuItem Header="レイアウト">
+                <MenuItem Header="Default" Command="{Binding DefaultLayoutCommand}" />
             </MenuItem>
         </Menu>
 
-        <avalonDock:DockingManager x:Name="_dockingManager">
+        <avalonDock:DockingManager x:Name="_dockingManager"
+                                   AnchorablesSource="{Binding Tools}" 
+                                   DocumentsSource="{Binding Documents}"
+                                   ActiveContent="{Binding ActiveDocument, Mode=TwoWay, Converter={StaticResource ActiveDocumentConverter}}"                                   
+                                   >
             <avalonDock:LayoutRoot>
                 <avalonDock:LayoutPanel Orientation="Horizontal">
-                    <avalonDock:LayoutDocumentPane>
-                        <!-- ドキュメント1 -->
-                        <avalonDock:LayoutDocument Title="Document1" CanClose="False" CanFloat="False" ContentId="Document">
-                            <ListBox ItemsSource="{Binding Items}"
-                             SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                             >
-                            </ListBox>
-                        </avalonDock:LayoutDocument>
-                    </avalonDock:LayoutDocumentPane>
-                    <avalonDock:LayoutAnchorablePane DockWidth="150">
-                        <!-- ツールウィンドウ1 -->
-                        <avalonDock:LayoutAnchorable x:Name="_toolWindow1" Title="ToolWindow1" ContentId="Tool1">
-                            <StackPanel>
-                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                                    <Button Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
-                                    <Button Command="{Binding ClearItemsCommand}">Clear</Button>
-                                </StackPanel>
-                            </StackPanel>
-                        </avalonDock:LayoutAnchorable>
-                    </avalonDock:LayoutAnchorablePane>
+                    <avalonDock:LayoutDocumentPane/>
+                    <avalonDock:LayoutAnchorablePane DockWidth="150"/>
                 </avalonDock:LayoutPanel>
             </avalonDock:LayoutRoot>
         </avalonDock:DockingManager>
