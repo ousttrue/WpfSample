@@ -170,9 +170,8 @@ namespace WpfSample
                 return m_addItemsCommand;
             }
         }
-        void AddItems(Object arg)
+        void AddItems(IEnumerable<Uri> urilist)
         {
-            var urilist = (IEnumerable<Uri>)arg;
             foreach (var uri in urilist)
             {
                 Items.Add(uri);
