@@ -30,21 +30,15 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
         </l:InteractionMessageTrigger>
 
         <l:InteractionMessageTrigger MessageKey="Confirm" Messenger="{Binding Messenger}" >
-            <l:ConfirmationDialogInteractionMessageAction>
-                <l:DirectInteractionMessage Message="{Binding ConfirmationMessage}"/>
-            </l:ConfirmationDialogInteractionMessageAction>
+            <l:ConfirmationDialogInteractionMessageAction/>
         </l:InteractionMessageTrigger>
         
         <l:InteractionMessageTrigger MessageKey="Open" Messenger="{Binding Messenger}" >
-            <l:OpenFileDialogInteractionMessageAction>
-                <l:DirectInteractionMessage Message="{Binding OpeningFileSelectionMessage}" />
-            </l:OpenFileDialogInteractionMessageAction>
+            <l:OpenFileDialogInteractionMessageAction/>
         </l:InteractionMessageTrigger>
 
         <l:InteractionMessageTrigger MessageKey="Save" Messenger="{Binding Messenger}" >
-            <l:SaveFileDialogInteractionMessageAction>
-                <l:DirectInteractionMessage Message="{Binding SavingFileSelectionMessage}" />
-            </l:SaveFileDialogInteractionMessageAction>
+            <l:SaveFileDialogInteractionMessageAction/>
         </l:InteractionMessageTrigger>
     </i:Interaction.Triggers>
     

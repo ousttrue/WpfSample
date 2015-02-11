@@ -30,78 +30,43 @@ namespace WpfSample
         #endregion
 
         #region ConfirmationMessage
-        ConfirmationMessage m_confirmationMessage;
-        public ConfirmationMessage ConfirmationMessage
-        {
-            get { return m_confirmationMessage; }
-            set
-            {
-                if (m_confirmationMessage == value) return;
-                m_confirmationMessage = value;
-                RaisePropertyChanged("ConfirmationMessage");
-            }
-        }
-
         protected bool ConfirmDialog(String text, String title)
         {
-            ConfirmationMessage = new ConfirmationMessage(text, title
+            var message=new ConfirmationMessage(text, title
                         , MessageBoxImage.Question, MessageBoxButton.YesNo, "Confirm");
-            Messenger.Raise(ConfirmationMessage);
-            return ConfirmationMessage.Response.HasValue && ConfirmationMessage.Response.Value;
+            Messenger.Raise(message);
+            return message.Response.HasValue && message.Response.Value;
         }
         #endregion
 
         #region OpeningFileSelectionMessage
-        OpeningFileSelectionMessage m_openingFileSelectionMessage;
-        public OpeningFileSelectionMessage OpeningFileSelectionMessage
-        {
-            get { return m_openingFileSelectionMessage; }
-            private set
-            {
-                if (m_openingFileSelectionMessage == value) return;
-                m_openingFileSelectionMessage = value;
-                RaisePropertyChanged("OpeningFileSelectionMessage");
-            }
-        }
         protected String[] OpenDialog(String title, bool multiSelect = false)
         {
             return OpenDialog(title, "すべてのファイル(*.*)|*.*", multiSelect);
         }
         protected String[] OpenDialog(String title, String filter, bool multiSelect)
         {
-            OpeningFileSelectionMessage = new OpeningFileSelectionMessage("Open")
+            var message = new OpeningFileSelectionMessage("Open")
             {
                 Title = title,
                 Filter = filter,
                 MultiSelect = multiSelect,
             };
-            Messenger.Raise(OpeningFileSelectionMessage);
-            return OpeningFileSelectionMessage.Response;
+            Messenger.Raise(message);
+            return message.Response;
         }
         #endregion
 
         #region SavingFileSelectionMessage
-        SavingFileSelectionMessage m_savingFileSelectionMessage;
-        public SavingFileSelectionMessage SavingFileSelectionMessage
-        {
-            get{return m_savingFileSelectionMessage;}
-            set
-            {
-                if (m_savingFileSelectionMessage == value) return;
-                m_savingFileSelectionMessage = value;
-                RaisePropertyChanged("SavingFileSelectionMessage");
-            }
-        }
-
         protected String SaveDialog(String title, string filename)
         {
-            SavingFileSelectionMessage = new SavingFileSelectionMessage("Save")
+            var message = new SavingFileSelectionMessage("Save")
             {
                 Title = title,
                 FileName = String.IsNullOrEmpty(filename) ? "list.txt" : filename,
             };
-            Messenger.Raise(SavingFileSelectionMessage);
-            return SavingFileSelectionMessage.Response != null ? SavingFileSelectionMessage.Response[0] : null;
+            Messenger.Raise(message);
+            return message.Response != null ? message.Response[0] : null;
         }
         #endregion
     }
