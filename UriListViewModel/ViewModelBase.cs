@@ -7,12 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace WpfSample
+namespace UriListViewModel
 {
     /// <summary>
     /// Livetのダイアログ４種類のヘルパー関数
     /// </summary>
-    class ViewModelBase : Livet.ViewModel
+    public class ViewModelBase : Livet.ViewModel
     {
         #region InformationMessage
         protected void InfoDialog(String message)

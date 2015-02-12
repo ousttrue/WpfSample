@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interactivity;
 
-namespace WpfSample
+namespace UriListViewModel
 {
     public class FileDropBehavior : Behavior<FrameworkElement>
     {

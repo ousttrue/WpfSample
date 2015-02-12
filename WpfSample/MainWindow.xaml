@@ -4,20 +4,20 @@
 xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
 xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"         
 xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"        
-        xmlns:local="clr-namespace:WpfSample"
+        xmlns:vm="clr-namespace:UriListViewModel;assembly=UriListViewModel"
         Title="MainWindow" Height="350" Width="525"
         AllowDrop="True"
         >
     <Window.Resources>
-        <local:MainWindowViewModel x:Key="ViewModel" />
-        <local:NullToFalseConverter x:Key="NullToFalseConverter" />
+        <vm:UriListViewModel x:Key="ViewModel" />
+        <vm:NullToFalseConverter x:Key="NullToFalseConverter" />
     </Window.Resources>
     <Window.DataContext>
         <StaticResourceExtension ResourceKey="ViewModel" />
     </Window.DataContext>
     
     <i:Interaction.Behaviors>
-        <local:FileDropBehavior Command="{Binding AddItemsCommand}" />
+        <vm:FileDropBehavior Command="{Binding AddItemsCommand}" />
     </i:Interaction.Behaviors>   
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">

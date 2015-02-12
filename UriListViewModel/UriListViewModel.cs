@@ -10,9 +10,9 @@ using System.Windows;
 using System.Windows.Input;
 
 
-namespace WpfSample
+namespace UriListViewModel
 {
-    class MainWindowViewModel: ViewModelBase
+    public class UriListViewModel: ViewModelBase
     {
         #region Items
         UriListModel.UriListModel m_model;
@@ -165,6 +165,7 @@ namespace WpfSample
             try
             {
                 System.IO.File.WriteAllBytes(Path, Model.ToBytes());
+                IsDirty = false;
             }
             catch (Exception ex)
             {
@@ -244,7 +245,7 @@ namespace WpfSample
         }
         #endregion
 
-        public MainWindowViewModel()
+        public UriListViewModel()
         {
             CompositeDisposable.Add(OnDispose);
         }
