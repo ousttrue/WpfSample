@@ -6,11 +6,12 @@ xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
 xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"        
 xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"        
         xmlns:vm="clr-namespace:UriListViewModel;assembly=UriListViewModel"
+        xmlns:local="clr-namespace:AvalonDockSample"
         Title="MainWindow" Height="350" Width="525"
         AllowDrop="True"
         >
     <Window.Resources>
-        <vm:UriListViewModel x:Key="ViewModel" />
+        <local:MainWindowViewModel x:Key="ViewModel" />
         <vm:NullToFalseConverter x:Key="NullToFalseConverter" />
     </Window.Resources>
     <Window.DataContext>
@@ -22,8 +23,13 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
     </i:Interaction.Behaviors>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveLayout" MethodParameter="{Binding ElementName=_dockingManager}"/>
             <l:DataContextDisposeAction />
         </i:EventTrigger>
+        <i:EventTrigger EventName="Loaded">
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadLayout" MethodParameter="{Binding ElementName=_dockingManager}"/>
+        </i:EventTrigger>
+        
         <l:InteractionMessageTrigger MessageKey="Info" Messenger="{Binding Messenger}" >
             <l:InformationDialogInteractionMessageAction />
         </l:InteractionMessageTrigger>
@@ -52,11 +58,18 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
                     IsEnabled="{Binding HasAnyItem}"
                     Command="{Binding ClearItemsCommand}"/>
             </MenuItem>
+
+            <MenuItem Header="表示">
+                <MenuItem 
+                    Header="ToolWindow1"
+                    IsCheckable="True"
+                    IsChecked="{Binding IsVisible, ElementName=_toolWindow1}" />
+            </MenuItem>
         </Menu>
 
         <DockPanel DockPanel.Dock="Top">
             <Label>Path:</Label>
-            <TextBox Text="{Binding Path}" />
+            <TextBox Text="{Binding Path, Mode=OneWay}" IsReadOnly="True" Background="Silver"/>
         </DockPanel>
 
         <avalonDock:DockingManager x:Name="_dockingManager">
@@ -64,7 +77,7 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
                 <avalonDock:LayoutPanel Orientation="Horizontal">
                     <avalonDock:LayoutDocumentPane>
                         <!-- ドキュメント1 -->
-                        <avalonDock:LayoutDocument Title="Document1">
+                        <avalonDock:LayoutDocument Title="Document1" CanClose="False" CanFloat="False" ContentId="Document">
                             <ListBox ItemsSource="{Binding Items}"
                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                              >
@@ -73,7 +86,7 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
                     </avalonDock:LayoutDocumentPane>
                     <avalonDock:LayoutAnchorablePane DockWidth="150">
                         <!-- ツールウィンドウ1 -->
-                        <avalonDock:LayoutAnchorable Title="ToolWindow1">
+                        <avalonDock:LayoutAnchorable x:Name="_toolWindow1" Title="ToolWindow1" ContentId="Tool">
                             <StackPanel>
                                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                                     <Button Command="{Binding RemoveSelectedItemCommand}"
