@@ -65,6 +65,15 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
                     Header="ToolWindow1"
                     IsCheckable="True"
                     IsChecked="{Binding Tool.IsVisible, Mode=TwoWay}" />
+                <Separator/>
+                <MenuItem Header="デフォルトレイアウト"
+                    >
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="Click">
+                            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadDefaultLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </MenuItem>
             </MenuItem>
         </Menu>
 

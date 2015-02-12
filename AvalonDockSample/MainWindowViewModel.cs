@@ -20,6 +20,7 @@ namespace AvalonDockSample
                     );
             }
         }
+        Byte[] m_defaultLayout;
 
         LayoutAnchorable m_tool;
         public LayoutAnchorable Tool
@@ -33,34 +34,34 @@ namespace AvalonDockSample
             }
         }
 
+        public void LoadDefaultLayout(DockingManager dockManager)
+        {
+            LoadLayout(dockManager, m_defaultLayout);
+        }
+
         public void LoadLayout(DockingManager dockManager)
         {
-            var bytes = System.IO.File.ReadAllBytes(LayoutFile);
-            
-            var serializer = new XmlLayoutSerializer(dockManager);
-            serializer.LayoutSerializationCallback += (o, e) =>
+            // backup default layout
+            using (var ms = new MemoryStream())
             {
-                if (e.Model.ContentId == "Tool")
-                {
-                    Tool = (LayoutAnchorable)e.Model;
-                    int a = 0;
-                }
-            };
+                var serializer = new XmlLayoutSerializer(dockManager);
+                serializer.Serialize(ms);
+                m_defaultLayout = ms.ToArray();
+            }
 
+            // restore layout
+            Byte[] bytes;
             try
             {
-                using (var stream = new MemoryStream(bytes))
-                {
-                    serializer.Deserialize(stream);
-                }
+                bytes = System.IO.File.ReadAllBytes(LayoutFile);
             }
             catch (FileNotFoundException ex)
             {
-
+                return;
             }
-            catch (Exception ex)
-            {
-                ErrorDialog(ex);
+
+            if(!LoadLayout(dockManager, bytes)){
+                return;
             }
 
             // 独自にxmlを解析する
@@ -83,6 +84,37 @@ namespace AvalonDockSample
                         }
                     }
                 }
+            }
+        }
+
+        bool LoadLayout(DockingManager dockManager, Byte[] bytes, EventHandler<LayoutSerializationCallbackEventArgs> callback=null)
+        {           
+            var serializer = new XmlLayoutSerializer(dockManager);
+
+            serializer.LayoutSerializationCallback += (o, e) =>
+            {
+                if (e.Model.ContentId == "Tool")
+                {
+                    // シリアライズされて新しくできたLayoutAnchorableを保存しとく
+                    Tool = (LayoutAnchorable)e.Model;
+                }
+            };
+
+            if(callback!=null){
+                serializer.LayoutSerializationCallback += callback;
+            }
+            try
+            {
+                using (var stream = new MemoryStream(bytes))
+                {
+                    serializer.Deserialize(stream);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ErrorDialog(ex);
+                return false;
             }
         }
 
