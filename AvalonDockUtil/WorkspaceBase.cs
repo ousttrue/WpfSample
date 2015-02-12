@@ -31,6 +31,14 @@ namespace AvalonDockUtil
                 return _readonyFiles;
             }
         }
+
+        public void SaveAllDocuments()
+        {
+            foreach(var d in Documents)
+            {
+                d.ConfirmSave();
+            }
+        }
         #endregion
 
         #region ActiveDocument
@@ -100,7 +108,6 @@ namespace AvalonDockUtil
 
         public abstract DocumentBase CreateDocument();
         public abstract DocumentBase CreateDocumentFromFilePath(string filepath);
-        protected abstract void MatchLayoutContent(Object o, LayoutSerializationCallbackEventArgs e);
         protected abstract void InitializeTools();
 
         protected WorkspaceBase()
@@ -142,7 +149,7 @@ namespace AvalonDockUtil
                 m_defaultLayout = ms.ToArray();
             }
 
-            // restore layout
+            // load file
             Byte[] bytes;
             try
             {
@@ -153,74 +160,71 @@ namespace AvalonDockUtil
                 return;
             }
 
+            // restore layout
             if (!LoadLayout(dockManager, bytes))
             {
                 return;
             }
-
-            /*
-            // 独自にxmlを解析する
-            using (var stream = new MemoryStream(bytes))
-            {
-                var doc = new XmlDocument();
-                doc.Load(stream);
-                // ContentIDが"Document"のIDを探す
-                var documents = doc.SelectNodes("//*[@ContentId=\"Document\"]");
-                if (documents.Count > 0)
-                {
-                    var document = documents[0];
-                    foreach (XmlAttribute attrib in document.Attributes)
-                    {
-                        if (attrib.Name == "FilePath")
-                        {
-                            Path = attrib.Value;
-                            Load();
-                            break;
-                        }
-                    }
-                }
-            }
-            */
         }
 
-        bool LoadLayout(DockingManager dockManager, Byte[] bytes, EventHandler<LayoutSerializationCallbackEventArgs> callback = null)
+        void MatchLayoutContent(object o, LayoutSerializationCallbackEventArgs e)
+        {
+            if (e.Model is LayoutAnchorable)
+            {
+                // Tool Windows
+                foreach (var tool in Tools)
+                {
+                    if (tool.ContentId == e.Model.ContentId)
+                    {
+                        e.Content = tool;
+                        return;
+                    }
+                }
+
+                // Unknown
+                ErrorDialog(new Exception("unknown ContentID: " + e.Model.ContentId));
+                return;
+            }
+
+            if (e.Model is LayoutDocument)
+            {
+                // load済みを探す
+                foreach (var document in Documents)
+                {
+                    if (document.ContentId == e.Model.ContentId)
+                    {
+                        e.Content = document;
+                        return;
+                    }
+                }
+
+                // Document
+                var path = e.Model.ContentId;
+                if (!String.IsNullOrEmpty(path) && System.IO.File.Exists(path))
+                {
+                    var document = OpenDocumentFromFilePath(path);
+                    e.Content = document;
+                }
+                else
+                {
+                    var document = NewDocument();
+                    e.Content = document;
+                }
+                return;
+            }
+
+            ErrorDialog(new Exception("Unknown Model: " + e.Model.GetType()));
+            return;
+        }
+
+        bool LoadLayout(DockingManager dockManager, Byte[] bytes)
         {
             InitializeTools();
 
             var serializer = new XmlLayoutSerializer(dockManager);
 
-            serializer.LayoutSerializationCallback += (o, e) =>
-            {
-                if (e.Model is LayoutAnchorable)
-                {
-                    Console.WriteLine("Tool:"+e.Model.ContentId);
+            serializer.LayoutSerializationCallback += MatchLayoutContent;
 
-                    // Tool
-                    var tool = Tools.FirstOrDefault(t => t.ContentId == e.Model.ContentId);
-                    if (tool != null)
-                    {
-                        // 割り当て
-                        e.Model.Content = tool;
-                    }
-                    else
-                    {
-                        InfoDialog("割り当てるtoolがありません。: " + e.Model.ContentId);
-                    }
-                }
-                else
-                {
-                    // Document
-                    Console.WriteLine("Document:" + e.Model.ContentId);
-
-                    // 割り当て
-                    e.Model.Content = NewDocument();
-                }
-            };
-
-            if (callback != null)
-            {
-                serializer.LayoutSerializationCallback += callback;
-            }
             try
             {
                 using (var stream = new MemoryStream(bytes))
@@ -246,23 +250,6 @@ namespace AvalonDockUtil
                 stream.Position = 0;
                 doc.Load(stream);
             }
-
-            /*
-            if (!String.IsNullOrEmpty(Pat))
-            {
-                // ContentIDが"Document"のIDを探す
-                var documents = doc.SelectNodes("//*[@ContentId=\"Document\"]");
-                if (documents.Count > 0)
-                {
-                    // documentのファイルパスを追記する
-                    var document = documents[0];
-
-                    var attrib = doc.CreateAttribute("FilePath");
-                    attrib.Value = Path;
-                    document.Attributes.Append(attrib);
-                }
-            }
-            */
 
             using (var stream = new FileStream(LayoutFile, FileMode.Create))
             {

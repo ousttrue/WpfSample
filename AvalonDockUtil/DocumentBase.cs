@@ -1,4 +1,6 @@
-﻿using Livet.Commands;
+﻿using Codeplex.Reactive;
+using Codeplex.Reactive.Extensions;
+using Livet.Commands;
 using System;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -119,26 +121,15 @@ namespace AvalonDockUtil
         #endregion
 
         #region SaveCommand
-        ViewModelCommand m_saveCommand;
+        ReactiveCommand m_saveCommand;
         public ICommand SaveCommand
         {
             get
             {
                 if (m_saveCommand == null)
                 {
-                    m_saveCommand = new ViewModelCommand(() =>
-                    {
-                        if (String.IsNullOrEmpty(FilePath))
-                        {
-                            var response = SaveDialog("Save", DefaultFileName);
-                            if (response == null)
-                            {
-                                return;
-                            }
-                            FilePath = response;
-                        }
-                        Save();
-                    }, () => IsDirty);
+                    m_saveCommand = this.ObserveProperty(o => o.IsDirty).ToReactiveCommand(false);
+                    m_saveCommand.Subscribe(_=>Save(false));
                 }
                 return m_saveCommand;
             }
@@ -146,23 +137,15 @@ namespace AvalonDockUtil
         #endregion
 
         #region SaveAsCommand
-        ViewModelCommand m_saveAsCommand;
+        ReactiveCommand m_saveAsCommand;
         public ICommand SaveAsCommand
         {
             get
             {
                 if (m_saveAsCommand == null)
                 {
-                    m_saveAsCommand = new ViewModelCommand(() =>
-                    {
-                        var response = SaveDialog("Save", FilePath);
-                        if (response == null)
-                        {
-                            return;
-                        }
-                        FilePath = response;
-                        Save();
-                    }, () => IsDirty);
+                    m_saveAsCommand = this.ObserveProperty(o => o.IsDirty).ToReactiveCommand(false);
+                    m_saveCommand.Subscribe(_ => Save(true));
                 }
                 return m_saveAsCommand;
             }
@@ -185,27 +168,25 @@ namespace AvalonDockUtil
         #endregion
 
         abstract public void Load();
-        abstract public void Save();
+        abstract public void Save(bool AsFlag);
+        public void ConfirmSave()
+        {
+            if (!IsDirty)
+            {
+                return;
+            }
+            if (!ConfirmDialog(string.Format("Save changes for file '{0}'?", FileName), "Confirm"))
+            {
+                return;
+            }
+            Save(false);
+        }
 
         protected DocumentBase()
         {
             CompositeDisposable.Add(() =>
             {
-                if (IsDirty)
-                {
-                    if (ConfirmDialog(string.Format("Save changes for file '{0}'?", FileName), "Confirm"))
-                    {
-                        if (String.IsNullOrEmpty(FilePath))
-                        {
-                            var resonse = SaveDialog("Save", DefaultFileName);
-                            if (resonse != null)
-                            {
-                                FilePath = resonse;
-                                Save();
-                            }
-                        }
-                    }
-                }
+                ConfirmSave();
             });
         }
     }

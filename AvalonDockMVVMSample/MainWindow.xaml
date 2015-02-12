@@ -13,61 +13,19 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
         >
     <Window.Resources>
         <local:MainWindowViewModel x:Key="ViewModel" />
-        <vm:NullToFalseConverter x:Key="NullToFalseConverter" />
         <util:ActiveDocumentConverter x:Key="ActiveDocumentConverter"/>
         <avalonDock:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <vm:NullToFalseConverter x:Key="NullToFalseConverter" />
 
         <DataTemplate DataType="{x:Type local:DocumentViewModel}">
-            <DockPanel>
-                <i:Interaction.Behaviors>
-                    <vm:FileDropBehavior Command="{Binding AddItemsCommand}" />
-                </i:Interaction.Behaviors>
-
-                <i:Interaction.Triggers>
-                    <l:InteractionMessageTrigger MessageKey="Info" Messenger="{Binding Messenger}" >
-                        <l:InformationDialogInteractionMessageAction />
-                    </l:InteractionMessageTrigger>
-                    <l:InteractionMessageTrigger MessageKey="Confirm" Messenger="{Binding Messenger}" >
-                        <l:ConfirmationDialogInteractionMessageAction/>
-                    </l:InteractionMessageTrigger>
-                    <l:InteractionMessageTrigger MessageKey="Open" Messenger="{Binding Messenger}" >
-                        <l:OpenFileDialogInteractionMessageAction/>
-                    </l:InteractionMessageTrigger>
-                    <l:InteractionMessageTrigger MessageKey="Save" Messenger="{Binding Messenger}" >
-                        <l:SaveFileDialogInteractionMessageAction/>
-                    </l:InteractionMessageTrigger>
-                </i:Interaction.Triggers>
-                
-                <DockPanel DockPanel.Dock="Top">
-                    <Menu>
-                        <MenuItem Header="Item">
-                            <MenuItem Header="Save" IsEnabled="{Binding IsDirty}" Command="{Binding SaveCommand}" />
-                            <MenuItem Header="Add" Command="{Binding AddCommand}" />
-                            <MenuItem Header="Remove" 
-                    IsEnabled="{Binding SelectedItem, Converter={StaticResource NullToFalseConverter}}" 
-                    Command="{Binding RemoveSelectedItemCommand}" />
-                            <MenuItem Header="Clear" 
-                    IsEnabled="{Binding HasAnyItem}"
-                    Command="{Binding ClearItemsCommand}"/>
-                        </MenuItem>                       
-                    </Menu>
-                </DockPanel>
-                <DockPanel DockPanel.Dock="Top">
-                    <Label>Path:</Label>
-                    <TextBox Text="{Binding FilePath, Mode=OneWay}" IsReadOnly="True" Background="Silver"/>
-                </DockPanel>
-                <ListBox ItemsSource="{Binding Items}"
-                         SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                    >                   
-                </ListBox>
-            </DockPanel>
+            <local:UriList />
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type local:StatusToolViewModel}">
             <StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Button Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
-                    <Button Command="{Binding ClearItemsCommand}">Clear</Button>
+                <StackPanel Orientation="Horizontal" DataContext="{Binding Document}">
+                    <Button IsEnabled="{Binding Converter={StaticResource NullToFalseConverter}}" Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
+                    <Button IsEnabled="{Binding Converter={StaticResource NullToFalseConverter}}" Command="{Binding ClearItemsCommand}">Clear</Button>
                 </StackPanel>
             </StackPanel>
         </DataTemplate>
@@ -78,10 +36,12 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
     </Window.DataContext>
 
     <i:Interaction.Triggers>
-        <i:EventTrigger EventName="Closed">
+        <i:EventTrigger EventName="Closed">           
             <!-- ファイル名を確定させる -->
-            <l:DataContextDisposeAction />
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveAllDocuments" />
             <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveLayout" MethodParameter="{Binding ElementName=_dockingManager}"/>
+            <!-- close all -->
+            <l:DataContextDisposeAction />
         </i:EventTrigger>
         <i:EventTrigger EventName="Loaded">
             <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadLayout" MethodParameter="{Binding ElementName=_dockingManager}"/>
@@ -162,8 +122,8 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
             <avalonDock:LayoutRoot>
                 <avalonDock:LayoutPanel Orientation="Vertical">
                     <avalonDock:LayoutPanel Orientation="Horizontal">
-                        <avalonDock:LayoutDocumentPane>
-                        </avalonDock:LayoutDocumentPane>
+                        <avalonDock:LayoutDocumentPane />
+
                         <avalonDock:LayoutAnchorablePane DockWidth="150">
                             <avalonDock:LayoutAnchorable ContentId="tool:Status"/>
                         </avalonDock:LayoutAnchorablePane>                       

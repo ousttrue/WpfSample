@@ -1,9 +1,12 @@
-﻿using Livet.Commands;
+﻿using Codeplex.Reactive;
+using Codeplex.Reactive.Extensions;
+using Livet.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
+using System.Reactive.Linq;
 
 namespace AvalonDockMVVMSample
 {
@@ -59,18 +62,6 @@ namespace AvalonDockMVVMSample
             }
         }
 
-        Boolean m_isDirty = false;
-        public Boolean IsDirty
-        {
-            get { return m_isDirty; }
-            private set
-            {
-                if (m_isDirty == value) return;
-                m_isDirty = value;
-                RaisePropertyChanged("IsDirty");
-            }
-        }
-
         ListenerCommand<IEnumerable<Uri>> m_addItemsCommand;
         public ICommand AddItemsCommand
         {
@@ -92,14 +83,16 @@ namespace AvalonDockMVVMSample
             IsDirty = true;
         }
 
-        ViewModelCommand m_clearItemsCommand;
+        ReactiveCommand m_clearItemsCommand;
         public ICommand ClearItemsCommand
         {
             get
             {
                 if (m_clearItemsCommand == null)
                 {
-                    m_clearItemsCommand = new ViewModelCommand(ClearItems);
+                    var hasAnyItem = this.ObserveProperty(o => o.HasAnyItem);
+                    m_clearItemsCommand = hasAnyItem.ToReactiveCommand(false);
+                    m_clearItemsCommand.Subscribe(_ => ClearItems());
                 }
                 return m_clearItemsCommand;
             }
@@ -110,14 +103,18 @@ namespace AvalonDockMVVMSample
             IsDirty = true;
         }
 
-        ViewModelCommand m_removeSelectedItemCommand;
+        ReactiveCommand m_removeSelectedItemCommand;
         public ICommand RemoveSelectedItemCommand
         {
             get
             {
                 if (m_removeSelectedItemCommand == null)
                 {
-                    m_removeSelectedItemCommand = new ViewModelCommand(RemoveSelectedItem);
+                    var hasSelectedItem=this.ObserveProperty(o=>o.SelectedItem)
+                        .Select(item=>item!=null)
+                        ;
+                    m_removeSelectedItemCommand = hasSelectedItem.ToReactiveCommand(false);
+                    m_removeSelectedItemCommand.Subscribe(_=>RemoveSelectedItem());                        
                 }
                 return m_removeSelectedItemCommand;
             }
@@ -130,10 +127,19 @@ namespace AvalonDockMVVMSample
         #endregion
 
         #region Save & Load
-        public override void Save()
+        public override void Save(bool asFlag)
         {
             try
             {
+                if (asFlag|| String.IsNullOrEmpty(FilePath))
+                {
+                    var response = SaveDialog("Save", FilePath);
+                    if (response == null)
+                    {
+                        return;
+                    }
+                    FilePath = response;
+                }
                 System.IO.File.WriteAllBytes(FilePath, Model.ToBytes());
                 IsDirty = false;
             }
