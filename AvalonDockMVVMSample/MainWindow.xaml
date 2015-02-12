@@ -1,0 +1,178 @@
+﻿<Window x:Class="AvalonDockMVVMSample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
+xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"         
+xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"        
+xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"        
+        xmlns:vm="clr-namespace:UriListViewModel;assembly=UriListViewModel"
+        xmlns:local="clr-namespace:AvalonDockMVVMSample"
+        xmlns:util="clr-namespace:AvalonDockUtil;assembly=AvalonDockUtil"
+        Title="MainWindow" Height="350" Width="525"
+        AllowDrop="True"
+        >
+    <Window.Resources>
+        <local:MainWindowViewModel x:Key="ViewModel" />
+        <vm:NullToFalseConverter x:Key="NullToFalseConverter" />
+        <util:ActiveDocumentConverter x:Key="ActiveDocumentConverter"/>
+        <avalonDock:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+        <DataTemplate DataType="{x:Type local:DocumentViewModel}">
+            <DockPanel>
+                <i:Interaction.Behaviors>
+                    <vm:FileDropBehavior Command="{Binding AddItemsCommand}" />
+                </i:Interaction.Behaviors>
+
+                <i:Interaction.Triggers>
+                    <l:InteractionMessageTrigger MessageKey="Info" Messenger="{Binding Messenger}" >
+                        <l:InformationDialogInteractionMessageAction />
+                    </l:InteractionMessageTrigger>
+                    <l:InteractionMessageTrigger MessageKey="Confirm" Messenger="{Binding Messenger}" >
+                        <l:ConfirmationDialogInteractionMessageAction/>
+                    </l:InteractionMessageTrigger>
+                    <l:InteractionMessageTrigger MessageKey="Open" Messenger="{Binding Messenger}" >
+                        <l:OpenFileDialogInteractionMessageAction/>
+                    </l:InteractionMessageTrigger>
+                    <l:InteractionMessageTrigger MessageKey="Save" Messenger="{Binding Messenger}" >
+                        <l:SaveFileDialogInteractionMessageAction/>
+                    </l:InteractionMessageTrigger>
+                </i:Interaction.Triggers>
+                
+                <DockPanel DockPanel.Dock="Top">
+                    <Menu>
+                        <MenuItem Header="Item">
+                            <MenuItem Header="Save" IsEnabled="{Binding IsDirty}" Command="{Binding SaveCommand}" />
+                            <MenuItem Header="Add" Command="{Binding AddCommand}" />
+                            <MenuItem Header="Remove" 
+                    IsEnabled="{Binding SelectedItem, Converter={StaticResource NullToFalseConverter}}" 
+                    Command="{Binding RemoveSelectedItemCommand}" />
+                            <MenuItem Header="Clear" 
+                    IsEnabled="{Binding HasAnyItem}"
+                    Command="{Binding ClearItemsCommand}"/>
+                        </MenuItem>                       
+                    </Menu>
+                </DockPanel>
+                <DockPanel DockPanel.Dock="Top">
+                    <Label>Path:</Label>
+                    <TextBox Text="{Binding FilePath, Mode=OneWay}" IsReadOnly="True" Background="Silver"/>
+                </DockPanel>
+                <ListBox ItemsSource="{Binding Items}"
+                         SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                    >                   
+                </ListBox>
+            </DockPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type local:StatusToolViewModel}">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
+                    <Button Command="{Binding ClearItemsCommand}">Clear</Button>
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+
+    </Window.Resources>
+    <Window.DataContext>
+        <StaticResourceExtension ResourceKey="ViewModel" />
+    </Window.DataContext>
+
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closed">
+            <!-- ファイル名を確定させる -->
+            <l:DataContextDisposeAction />
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveLayout" MethodParameter="{Binding ElementName=_dockingManager}"/>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Loaded">
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadLayout" MethodParameter="{Binding ElementName=_dockingManager}"/>
+        </i:EventTrigger>
+
+        <l:InteractionMessageTrigger MessageKey="Info" Messenger="{Binding Messenger}" >
+            <l:InformationDialogInteractionMessageAction />
+        </l:InteractionMessageTrigger>
+        <l:InteractionMessageTrigger MessageKey="Confirm" Messenger="{Binding Messenger}" >
+            <l:ConfirmationDialogInteractionMessageAction/>
+        </l:InteractionMessageTrigger>
+        <l:InteractionMessageTrigger MessageKey="Open" Messenger="{Binding Messenger}" >
+            <l:OpenFileDialogInteractionMessageAction/>
+        </l:InteractionMessageTrigger>
+        <l:InteractionMessageTrigger MessageKey="Save" Messenger="{Binding Messenger}" >
+            <l:SaveFileDialogInteractionMessageAction/>
+        </l:InteractionMessageTrigger>
+    </i:Interaction.Triggers>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="ファイル">
+                <MenuItem Header="New" Command="{Binding NewDocumentCommand}" />
+                <MenuItem Header="Open" Command="{Binding OpenDocumentCommand}"/>
+            </MenuItem>
+
+            <MenuItem Header="表示" ItemsSource="{Binding Tools}">
+                <MenuItem.ItemTemplate>
+                    <DataTemplate>
+                        <MenuItem 
+                            Header="{Binding Title}"
+                            IsCheckable="True"
+                            IsChecked="{Binding IsVisible, Mode=TwoWay}" />
+                    </DataTemplate>
+                </MenuItem.ItemTemplate>
+            </MenuItem>
+            
+            <MenuItem Header="レイアウト">
+                <MenuItem Header="デフォルト">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="Click">
+                            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadDefaultLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+
+        <avalonDock:DockingManager x:Name="_dockingManager"
+                                   DocumentsSource="{Binding Documents}"
+                                   ActiveContent="{Binding ActiveDocument, Mode=TwoWay, Converter={StaticResource ActiveDocumentConverter}}"                              
+                                   AnchorablesSource="{Binding Tools}"                                    
+                                   >
+            <avalonDock:DockingManager.LayoutItemContainerStyleSelector>
+                <util:PanesStyleSelector>
+                    <util:PanesStyleSelector.ToolStyle>
+                        <Style TargetType="{x:Type avalonDock:LayoutAnchorableItem}">
+                            <Setter Property="Title" Value="{Binding Model.Title}"/>
+                            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Mode=TwoWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
+                            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay}"/>
+                            <Setter Property="IsActive" Value="{Binding Model.IsActive, Mode=TwoWay}"/>
+                            <Setter Property="ContentId" Value="{Binding Model.ContentId}"/>
+                            <Setter Property="IconSource" Value="{Binding Model.IconSource}"/>
+                            </Style>
+                    </util:PanesStyleSelector.ToolStyle>
+                    <util:PanesStyleSelector.DocumentStyle>
+                        <Style TargetType="{x:Type avalonDock:LayoutItem}">
+                            <Setter Property="ContentId" Value="{Binding Model.ContentId}"/>
+                            <Setter Property="Title" Value="{Binding Model.Title}"/>
+                            <Setter Property="ToolTip" Value="{Binding Model.FilePath}"/>
+                            <Setter Property="CloseCommand" Value="{Binding Model.CloseCommand}"/>
+                            <Setter Property="IconSource" Value="{Binding Model.IconSource}"/>
+                        </Style>
+                    </util:PanesStyleSelector.DocumentStyle>
+                </util:PanesStyleSelector>
+            </avalonDock:DockingManager.LayoutItemContainerStyleSelector>
+
+            <avalonDock:LayoutRoot>
+                <avalonDock:LayoutPanel Orientation="Vertical">
+                    <avalonDock:LayoutPanel Orientation="Horizontal">
+                        <avalonDock:LayoutDocumentPane>
+                        </avalonDock:LayoutDocumentPane>
+                        <avalonDock:LayoutAnchorablePane DockWidth="150">
+                            <avalonDock:LayoutAnchorable ContentId="tool:Status"/>
+                        </avalonDock:LayoutAnchorablePane>                       
+                    </avalonDock:LayoutPanel>
+                    <avalonDock:LayoutAnchorablePane DockHeight="70">
+                        <avalonDock:LayoutAnchorable ContentId="tool:Message"/>
+                    </avalonDock:LayoutAnchorablePane>
+                </avalonDock:LayoutPanel>
+            </avalonDock:LayoutRoot>
+        </avalonDock:DockingManager>
+    </DockPanel>
+</Window>

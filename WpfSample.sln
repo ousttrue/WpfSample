@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UriListViewModel", "UriList
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvalonDockSample", "AvalonDockSample\AvalonDockSample.csproj", "{A4EF1FB9-4E95-4190-93B2-6179009E3BCD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvalonDockUtil", "AvalonDockUtil\AvalonDockUtil.csproj", "{58531A00-FEB5-4CD8-A0F4-99550F80ADFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvalonDockMVVMSample", "AvalonDockMVVMSample\AvalonDockMVVMSample.csproj", "{6B91BE1E-B934-4691-89E1-9A54A2462F52}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{A4EF1FB9-4E95-4190-93B2-6179009E3BCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4EF1FB9-4E95-4190-93B2-6179009E3BCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4EF1FB9-4E95-4190-93B2-6179009E3BCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58531A00-FEB5-4CD8-A0F4-99550F80ADFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58531A00-FEB5-4CD8-A0F4-99550F80ADFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58531A00-FEB5-4CD8-A0F4-99550F80ADFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58531A00-FEB5-4CD8-A0F4-99550F80ADFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B91BE1E-B934-4691-89E1-9A54A2462F52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B91BE1E-B934-4691-89E1-9A54A2462F52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B91BE1E-B934-4691-89E1-9A54A2462F52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B91BE1E-B934-4691-89E1-9A54A2462F52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
