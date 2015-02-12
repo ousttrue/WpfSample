@@ -139,7 +139,7 @@ namespace UriListViewModel
         public String Path
         {
             get { return m_path; }
-            private set
+            protected set
             {
                 if (m_path == value) return;
                 m_path = value;
@@ -173,7 +173,7 @@ namespace UriListViewModel
             }
         }
 
-        void Load()
+        protected void Load()
         {
             try
             {
