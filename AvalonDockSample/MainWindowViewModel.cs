@@ -4,6 +4,7 @@ using System.Xml;
 using System.Linq;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
+using Xceed.Wpf.AvalonDock.Layout;
 
 namespace AvalonDockSample
 {
@@ -20,11 +21,32 @@ namespace AvalonDockSample
             }
         }
 
+        LayoutAnchorable m_tool;
+        public LayoutAnchorable Tool
+        {
+            get { return m_tool; }
+            set
+            {
+                if (m_tool == value) return;
+                m_tool = value;
+                RaisePropertyChanged("Tool");
+            }
+        }
+
         public void LoadLayout(DockingManager dockManager)
         {
             var bytes = System.IO.File.ReadAllBytes(LayoutFile);
             
             var serializer = new XmlLayoutSerializer(dockManager);
+            serializer.LayoutSerializationCallback += (o, e) =>
+            {
+                if (e.Model.ContentId == "Tool")
+                {
+                    Tool = (LayoutAnchorable)e.Model;
+                    int a = 0;
+                }
+            };
+
             try
             {
                 using (var stream = new MemoryStream(bytes))

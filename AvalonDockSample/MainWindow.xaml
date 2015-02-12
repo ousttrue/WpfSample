@@ -23,8 +23,9 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
     </i:Interaction.Behaviors>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
+            <!-- ファイル名を確定させる -->
+            <l:DataContextDisposeAction />           
             <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveLayout" MethodParameter="{Binding ElementName=_dockingManager}"/>
-            <l:DataContextDisposeAction />
         </i:EventTrigger>
         <i:EventTrigger EventName="Loaded">
             <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadLayout" MethodParameter="{Binding ElementName=_dockingManager}"/>
@@ -63,7 +64,7 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
                 <MenuItem 
                     Header="ToolWindow1"
                     IsCheckable="True"
-                    IsChecked="{Binding IsVisible, ElementName=_toolWindow1}" />
+                    IsChecked="{Binding Tool.IsVisible, Mode=TwoWay}" />
             </MenuItem>
         </Menu>
 
