@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UriListModel", "UriListMode
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UriListViewModel", "UriListViewModel\UriListViewModel.csproj", "{195C2DF7-347F-473F-B3A7-6B7DA076F09E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvalonDockSample", "AvalonDockSample\AvalonDockSample.csproj", "{A4EF1FB9-4E95-4190-93B2-6179009E3BCD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{195C2DF7-347F-473F-B3A7-6B7DA076F09E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{195C2DF7-347F-473F-B3A7-6B7DA076F09E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{195C2DF7-347F-473F-B3A7-6B7DA076F09E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4EF1FB9-4E95-4190-93B2-6179009E3BCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4EF1FB9-4E95-4190-93B2-6179009E3BCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4EF1FB9-4E95-4190-93B2-6179009E3BCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4EF1FB9-4E95-4190-93B2-6179009E3BCD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
