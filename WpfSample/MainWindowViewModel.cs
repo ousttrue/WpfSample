@@ -12,78 +12,31 @@ using System.Windows.Input;
 
 namespace WpfSample
 {
-    /// <summary>
-    /// Livetのダイアログ４種類のヘルパー関数
-    /// </summary>
-    class MessagingViewModel : Livet.ViewModel
-    {
-        #region InformationMessage
-        protected void InfoDialog(String message)
-        {
-            Messenger.Raise(new InformationMessage(message, "Info", MessageBoxImage.Information, "Info"));
-        }
-
-        protected void ErrorDialog(Exception ex)
-        {
-            Messenger.Raise(new InformationMessage(ex.Message, "Error", MessageBoxImage.Error, "Info"));
-        }
-        #endregion
-
-        #region ConfirmationMessage
-        protected bool ConfirmDialog(String text, String title)
-        {
-            var message=new ConfirmationMessage(text, title
-                        , MessageBoxImage.Question, MessageBoxButton.YesNo, "Confirm");
-            Messenger.Raise(message);
-            return message.Response.HasValue && message.Response.Value;
-        }
-        #endregion
-
-        #region OpeningFileSelectionMessage
-        protected String[] OpenDialog(String title, bool multiSelect = false)
-        {
-            return OpenDialog(title, "すべてのファイル(*.*)|*.*", multiSelect);
-        }
-        protected String[] OpenDialog(String title, String filter, bool multiSelect)
-        {
-            var message = new OpeningFileSelectionMessage("Open")
-            {
-                Title = title,
-                Filter = filter,
-                MultiSelect = multiSelect,
-            };
-            Messenger.Raise(message);
-            return message.Response;
-        }
-        #endregion
-
-        #region SavingFileSelectionMessage
-        protected String SaveDialog(String title, string filename)
-        {
-            var message = new SavingFileSelectionMessage("Save")
-            {
-                Title = title,
-                FileName = String.IsNullOrEmpty(filename) ? "list.txt" : filename,
-            };
-            Messenger.Raise(message);
-            return message.Response != null ? message.Response[0] : null;
-        }
-        #endregion
-    }
-
-
-    class MainWindowViewModel: MessagingViewModel
+    class MainWindowViewModel: ViewModelBase
     {
         #region Items
-        ObservableCollection<Uri> m_items;
-        public ObservableCollection<Uri> Items {
+        UriListModel.UriListModel m_model;
+        UriListModel.UriListModel Model
+        {
             get
             {
-                if (m_items == null)
+                if (m_model == null)
                 {
-                    m_items = new ObservableCollection<Uri>();
+                    m_model = new UriListModel.UriListModel();
+                    m_model.Items.CollectionChanged += (o, e) =>
+                    {
+                        HasAnyItem = m_model.Items.Any();
+                    };
                 }
-                return m_items;
+                return m_model;
+            }
+        }
+
+        public ObservableCollection<Uri> Items
+        {
+            get
+            {
+                return Model.Items;
             }
         }
 
@@ -139,7 +92,7 @@ namespace WpfSample
         {
             foreach (var uri in urilist)
             {
-                Items.Add(uri);
+                Model.Items.Add(uri);
             }
             IsDirty = true;
         }
@@ -158,7 +111,7 @@ namespace WpfSample
         }
         void ClearItems()
         {
-            Items.Clear();
+            Model.Items.Clear();
             IsDirty = true;
         }
 
@@ -176,38 +129,22 @@ namespace WpfSample
         }
         void RemoveSelectedItem()
         {
-            Items.Remove(SelectedItem);
+            Model.Items.Remove(SelectedItem);
             IsDirty = true;
         }
         #endregion
 
-        #region Bytes
-        Byte[] ToBytes()
-        {
-            return Items
-                .Select(item => item.ToString() + "\n")
-                .SelectMany(s => Encoding.UTF8.GetBytes(s))
-                .ToArray()
-                ;
-            ;
-        }
-
-        void FromBytes(Byte[] bytes)
-        {
-            Items.Clear();
-            var str = Encoding.UTF8.GetString(bytes);
-            AddItems(str.Split('\n')
-                .Where(s=>!String.IsNullOrEmpty(s))
-                .Select(s=>new Uri(s))
-                );
-        }
-        #endregion
-
         #region Save & Load
+        String m_path;
         public String Path
         {
-            get;
-            private set;
+            get { return m_path; }
+            private set
+            {
+                if (m_path == value) return;
+                m_path = value;
+                RaisePropertyChanged("Path");
+            }
         }
 
         void Save(bool saveAs)
@@ -227,9 +164,9 @@ namespace WpfSample
 
             try
             {
-                System.IO.File.WriteAllBytes(Path, ToBytes());
+                System.IO.File.WriteAllBytes(Path, Model.ToBytes());
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ErrorDialog(ex);
             }
@@ -239,7 +176,7 @@ namespace WpfSample
         {
             try
             {
-                FromBytes(System.IO.File.ReadAllBytes(Path));
+                Model.FromBytes(System.IO.File.ReadAllBytes(Path));
                 IsDirty = false;
             }
             catch (Exception ex)
@@ -255,7 +192,7 @@ namespace WpfSample
             {
                 if (m_saveCommand == null)
                 {
-                    m_saveCommand = new ViewModelCommand(()=>
+                    m_saveCommand = new ViewModelCommand(() =>
                     {
                         Save(true);
                     });
@@ -271,11 +208,11 @@ namespace WpfSample
             {
                 if (m_openCommand == null)
                 {
-                    m_openCommand = new ViewModelCommand(()=>
+                    m_openCommand = new ViewModelCommand(() =>
                     {
                         var path = OpenDialog("Open");
                         if (path == null) return;
-                        Path=path[0];
+                        Path = path[0];
                         Load();
                     });
                 }
@@ -309,11 +246,6 @@ namespace WpfSample
 
         public MainWindowViewModel()
         {
-            Items.CollectionChanged += (o, e) =>
-            {
-                HasAnyItem = Items.Any();
-            };
-
             CompositeDisposable.Add(OnDispose);
         }
 

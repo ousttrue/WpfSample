@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfSample", "WpfSample\WpfSample.csproj", "{C6FD6E64-B6D5-468E-BA33-910BD27129C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvalonDockUtil", "AvalonDockUtil\AvalonDockUtil.csproj", "{2EB700A9-AE6C-4E53-82FB-A4321BD4A9FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UriListModel", "UriListModel\UriListModel.csproj", "{E1D64355-C791-41CD-A094-48DA8C61919A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{C6FD6E64-B6D5-468E-BA33-910BD27129C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6FD6E64-B6D5-468E-BA33-910BD27129C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6FD6E64-B6D5-468E-BA33-910BD27129C3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2EB700A9-AE6C-4E53-82FB-A4321BD4A9FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2EB700A9-AE6C-4E53-82FB-A4321BD4A9FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2EB700A9-AE6C-4E53-82FB-A4321BD4A9FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2EB700A9-AE6C-4E53-82FB-A4321BD4A9FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1D64355-C791-41CD-A094-48DA8C61919A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1D64355-C791-41CD-A094-48DA8C61919A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1D64355-C791-41CD-A094-48DA8C61919A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1D64355-C791-41CD-A094-48DA8C61919A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -18,25 +18,20 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
     
     <i:Interaction.Behaviors>
         <local:FileDropBehavior Command="{Binding AddItemsCommand}" />
-    </i:Interaction.Behaviors>
-    
+    </i:Interaction.Behaviors>   
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closed">
             <l:DataContextDisposeAction />
         </i:EventTrigger>
-
         <l:InteractionMessageTrigger MessageKey="Info" Messenger="{Binding Messenger}" >
             <l:InformationDialogInteractionMessageAction />
         </l:InteractionMessageTrigger>
-
         <l:InteractionMessageTrigger MessageKey="Confirm" Messenger="{Binding Messenger}" >
             <l:ConfirmationDialogInteractionMessageAction/>
-        </l:InteractionMessageTrigger>
-        
+        </l:InteractionMessageTrigger>       
         <l:InteractionMessageTrigger MessageKey="Open" Messenger="{Binding Messenger}" >
             <l:OpenFileDialogInteractionMessageAction/>
         </l:InteractionMessageTrigger>
-
         <l:InteractionMessageTrigger MessageKey="Save" Messenger="{Binding Messenger}" >
             <l:SaveFileDialogInteractionMessageAction/>
         </l:InteractionMessageTrigger>
@@ -45,20 +40,23 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="ファイル">
-                <MenuItem Header="Save" IsEnabled="{Binding IsDirty}" Command="{Binding SaveCommand}" />
                 <MenuItem Header="Open" Command="{Binding OpenCommand}" />
                 <Separator />
+                <MenuItem Header="Save" IsEnabled="{Binding IsDirty}" Command="{Binding SaveCommand}" />
                 <MenuItem Header="Add" Command="{Binding AddDialogCommand}" />
+                <MenuItem Header="Remove" 
+                    IsEnabled="{Binding SelectedItem, Converter={StaticResource NullToFalseConverter}}" 
+                    Command="{Binding RemoveSelectedItemCommand}" />
+                <MenuItem Header="Clear" IsEnabled="{Binding HasAnyItem}"
+                    Command="{Binding ClearItemsCommand}"/>
             </MenuItem>
         </Menu>
-        
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-            <Button IsEnabled="{Binding SelectedItem, Converter={StaticResource NullToFalseConverter}}" 
-                    Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
-            <Button IsEnabled="{Binding HasAnyItem}"
-                Command="{Binding ClearItemsCommand}">Clear</Button>
-        </StackPanel>
-        
+
+        <DockPanel DockPanel.Dock="Top">
+            <Label>Path:</Label>
+            <TextBox Text="{Binding Path}" />
+        </DockPanel>
+               
         <ListBox ItemsSource="{Binding Items}"
                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                  >            
