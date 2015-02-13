@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AvalonDockMVVMSample
 {
-    public class StatusToolContent: ToolContentBase
+    public class StatusToolContent: ToolContent
     {
         public StatusToolContent()
             : base("Status")

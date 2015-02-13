@@ -63,9 +63,9 @@
     <Compile Include="ActiveDocumentConverter.cs" />
     <Compile Include="ContentPropertyAttribute.cs" />
     <Compile Include="ContentPropertyStyleSelector.cs" />
-    <Compile Include="IContent.cs" />
+    <Compile Include="DocumentContent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ToolContentBase.cs" />
+    <Compile Include="ToolContent.cs" />
     <Compile Include="WorkspaceBase.cs" />
   </ItemGroup>
   <ItemGroup>

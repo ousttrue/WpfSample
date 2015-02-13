@@ -22,10 +22,5 @@ namespace AvalonDockMVVMSample
             Tools.Add(new MessageToolContent());
             Tools.Add(new StatusToolContent());
         }
-
-        protected override AvalonDockUtil.IDocumentContent OpenDocument(string contentId)
-        {
-            return new DocumentContent();
-        }
     }
 }

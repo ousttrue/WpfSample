@@ -10,7 +10,7 @@ using Xceed.Wpf.AvalonDock.Converters;
 
 namespace AvalonDockUtil
 {
-    public class ToolContentBase: IToolContent, INotifyPropertyChanged
+    public class ToolContent: INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         void RaisePropertyChanged(String prop)
@@ -79,7 +79,7 @@ namespace AvalonDockUtil
             }
         }
 
-        public ToolContentBase(String contentId, String title=null)
+        public ToolContent(String contentId, String title=null)
         {
             m_contentId = contentId;
             Title = String.IsNullOrEmpty(title) ? contentId : title;

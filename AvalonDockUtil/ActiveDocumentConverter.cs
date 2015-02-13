@@ -7,7 +7,7 @@ namespace AvalonDockUtil
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            if (value is IDocumentContent)
+            if (value is DocumentContent)
                 return value;
 
             return Binding.DoNothing;
@@ -15,7 +15,7 @@ namespace AvalonDockUtil
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            if (value is IDocumentContent)
+            if (value is DocumentContent)
                 return value;
 
             return Binding.DoNothing;

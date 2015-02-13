@@ -26,20 +26,23 @@ namespace AvalonDockUtil
             Console.WriteLine(ex);
         }
 
-        protected abstract IDocumentContent OpenDocument(String contentId);
+        protected virtual DocumentContent OpenDocument(String contentId)
+        {
+            return new DocumentContent(contentId);
+        }
 
-        ObservableCollection<IDocumentContent> m_documents;
-        public ObservableCollection<IDocumentContent> Documents
+        ObservableCollection<DocumentContent> m_documents;
+        public ObservableCollection<DocumentContent> Documents
         {
             get
             {
-                if (m_documents == null) m_documents = new ObservableCollection<IDocumentContent>();
+                if (m_documents == null) m_documents = new ObservableCollection<DocumentContent>();
                 return m_documents;
             }
         }
 
-        private IDocumentContent m_activeDocument;
-        public IDocumentContent ActiveDocument
+        private DocumentContent m_activeDocument;
+        public DocumentContent ActiveDocument
         {
             get
             {
@@ -53,12 +56,12 @@ namespace AvalonDockUtil
             }
         }
 
-        ObservableCollection<IToolContent> m_tools;
-        public ObservableCollection<IToolContent> Tools
+        ObservableCollection<ToolContent> m_tools;
+        public ObservableCollection<ToolContent> Tools
         {
             get
             {
-                if (m_tools == null) m_tools = new ObservableCollection<IToolContent>();
+                if (m_tools == null) m_tools = new ObservableCollection<ToolContent>();
                 return m_tools;
             }
         }
