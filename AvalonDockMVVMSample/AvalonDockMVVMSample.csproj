@@ -100,7 +100,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="StatusToolViewModel.cs" />
+    <Compile Include="StatusToolContent.cs" />
     <Compile Include="UriList.xaml.cs">
       <DependentUpon>UriList.xaml</DependentUpon>
     </Compile>
@@ -112,7 +112,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DocumentViewModel.cs" />
+    <Compile Include="DocumentContent.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -124,7 +124,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainWindowViewModel.cs" />
-    <Compile Include="MessageToolViewModel.cs" />
+    <Compile Include="MessageToolContent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

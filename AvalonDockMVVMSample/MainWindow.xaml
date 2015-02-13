@@ -12,62 +12,15 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
         AllowDrop="True"
         >
     <Window.Resources>
-        <local:MainWindowViewModel x:Key="ViewModel" />
         <util:ActiveDocumentConverter x:Key="ActiveDocumentConverter"/>
         <avalonDock:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-        <vm:NullToFalseConverter x:Key="NullToFalseConverter" />
-
-        <DataTemplate DataType="{x:Type local:DocumentViewModel}">
-            <local:UriList />
-        </DataTemplate>
-
-        <DataTemplate DataType="{x:Type local:StatusToolViewModel}">
-            <StackPanel>
-                <StackPanel Orientation="Horizontal" DataContext="{Binding Document}">
-                    <Button IsEnabled="{Binding Converter={StaticResource NullToFalseConverter}}" Command="{Binding RemoveSelectedItemCommand}">Remove</Button>
-                    <Button IsEnabled="{Binding Converter={StaticResource NullToFalseConverter}}" Command="{Binding ClearItemsCommand}">Clear</Button>
-                </StackPanel>
-            </StackPanel>
-        </DataTemplate>
-
     </Window.Resources>
     <Window.DataContext>
-        <StaticResourceExtension ResourceKey="ViewModel" />
+        <local:MainWindowViewModel />
     </Window.DataContext>
-
-    <i:Interaction.Triggers>
-        <i:EventTrigger EventName="Closed">           
-            <!-- ファイル名を確定させる -->
-            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveAllDocuments" />
-            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveLayout" MethodParameter="{Binding ElementName=_dockingManager}"/>
-            <!-- close all -->
-            <l:DataContextDisposeAction />
-        </i:EventTrigger>
-        <i:EventTrigger EventName="Loaded">
-            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadLayout" MethodParameter="{Binding ElementName=_dockingManager}"/>
-        </i:EventTrigger>
-
-        <l:InteractionMessageTrigger MessageKey="Info" Messenger="{Binding Messenger}" >
-            <l:InformationDialogInteractionMessageAction />
-        </l:InteractionMessageTrigger>
-        <l:InteractionMessageTrigger MessageKey="Confirm" Messenger="{Binding Messenger}" >
-            <l:ConfirmationDialogInteractionMessageAction/>
-        </l:InteractionMessageTrigger>
-        <l:InteractionMessageTrigger MessageKey="Open" Messenger="{Binding Messenger}" >
-            <l:OpenFileDialogInteractionMessageAction/>
-        </l:InteractionMessageTrigger>
-        <l:InteractionMessageTrigger MessageKey="Save" Messenger="{Binding Messenger}" >
-            <l:SaveFileDialogInteractionMessageAction/>
-        </l:InteractionMessageTrigger>
-    </i:Interaction.Triggers>
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="ファイル">
-                <MenuItem Header="New" Command="{Binding NewDocumentCommand}" />
-                <MenuItem Header="Open" Command="{Binding OpenDocumentCommand}"/>
-            </MenuItem>
-
             <MenuItem Header="表示" ItemsSource="{Binding Tools}">
                 <MenuItem.ItemTemplate>
                     <DataTemplate>
@@ -77,17 +30,7 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
                             IsChecked="{Binding IsVisible, Mode=TwoWay}" />
                     </DataTemplate>
                 </MenuItem.ItemTemplate>
-            </MenuItem>
-            
-            <MenuItem Header="レイアウト">
-                <MenuItem Header="デフォルト">
-                    <i:Interaction.Triggers>
-                        <i:EventTrigger EventName="Click">
-                            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadDefaultLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
-                        </i:EventTrigger>
-                    </i:Interaction.Triggers>
-                </MenuItem>
-            </MenuItem>
+            </MenuItem>           
         </Menu>
 
         <avalonDock:DockingManager x:Name="_dockingManager"
@@ -96,43 +39,11 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
                                    AnchorablesSource="{Binding Tools}"                                    
                                    >
             <avalonDock:DockingManager.LayoutItemContainerStyleSelector>
-                <util:PanesStyleSelector>
-                    <util:PanesStyleSelector.ToolStyle>
-                        <Style TargetType="{x:Type avalonDock:LayoutAnchorableItem}">
-                            <Setter Property="Title" Value="{Binding Model.Title}"/>
-                            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Mode=TwoWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}}"/>
-                            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay}"/>
-                            <Setter Property="IsActive" Value="{Binding Model.IsActive, Mode=TwoWay}"/>
-                            <Setter Property="ContentId" Value="{Binding Model.ContentId}"/>
-                            <Setter Property="IconSource" Value="{Binding Model.IconSource}"/>
-                            </Style>
-                    </util:PanesStyleSelector.ToolStyle>
-                    <util:PanesStyleSelector.DocumentStyle>
-                        <Style TargetType="{x:Type avalonDock:LayoutItem}">
-                            <Setter Property="ContentId" Value="{Binding Model.ContentId}"/>
-                            <Setter Property="Title" Value="{Binding Model.Title}"/>
-                            <Setter Property="ToolTip" Value="{Binding Model.FilePath}"/>
-                            <Setter Property="CloseCommand" Value="{Binding Model.CloseCommand}"/>
-                            <Setter Property="IconSource" Value="{Binding Model.IconSource}"/>
-                        </Style>
-                    </util:PanesStyleSelector.DocumentStyle>
-                </util:PanesStyleSelector>
+                <util:ContentPropertyStyleSelector />
             </avalonDock:DockingManager.LayoutItemContainerStyleSelector>
 
-            <avalonDock:LayoutRoot>
-                <avalonDock:LayoutPanel Orientation="Vertical">
-                    <avalonDock:LayoutPanel Orientation="Horizontal">
-                        <avalonDock:LayoutDocumentPane />
+            <avalonDock:LayoutRoot />
 
-                        <avalonDock:LayoutAnchorablePane DockWidth="150">
-                            <avalonDock:LayoutAnchorable ContentId="tool:Status"/>
-                        </avalonDock:LayoutAnchorablePane>                       
-                    </avalonDock:LayoutPanel>
-                    <avalonDock:LayoutAnchorablePane DockHeight="70">
-                        <avalonDock:LayoutAnchorable ContentId="tool:Message"/>
-                    </avalonDock:LayoutAnchorablePane>
-                </avalonDock:LayoutPanel>
-            </avalonDock:LayoutRoot>
         </avalonDock:DockingManager>
     </DockPanel>
 </Window>

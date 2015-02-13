@@ -19,26 +19,13 @@ namespace AvalonDockMVVMSample
     {
         public MainWindowViewModel()
         {
+            Tools.Add(new MessageToolContent());
+            Tools.Add(new StatusToolContent());
         }
 
-        public override AvalonDockUtil.DocumentBase CreateDocument()
+        protected override AvalonDockUtil.IDocumentContent OpenDocument(string contentId)
         {
-            return new DocumentViewModel();
-        }
-
-        public override AvalonDockUtil.DocumentBase CreateDocumentFromFilePath(string filepath)
-        {
-            var document=new DocumentViewModel();
-            document.FilePath = filepath;
-            document.Load();
-            return document;
-        }
-
-        protected override void InitializeTools()
-        {
-            ClearTools();
-            AddTool(new StatusToolViewModel());
-            AddTool(new MessageToolViewModel());
+            return new DocumentContent();
         }
     }
 }

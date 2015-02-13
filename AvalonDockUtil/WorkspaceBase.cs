@@ -1,15 +1,7 @@
-﻿using Livet.Commands;
-using Livet.Messaging;
-using Livet.Messaging.IO;
-using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Input;
 using System.Xml;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout;
@@ -17,108 +9,58 @@ using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
 namespace AvalonDockUtil
 {
-    public abstract class WorkspaceBase : ViewModelBase
+    public abstract class WorkspaceBase: INotifyPropertyChanged
     {
-        #region Documents
-        ObservableCollection<DocumentBase> m_documents = new ObservableCollection<DocumentBase>();
-        ReadOnlyObservableCollection<DocumentBase> _readonyFiles = null;
-        public ReadOnlyObservableCollection<DocumentBase> Documents
+        public event PropertyChangedEventHandler PropertyChanged;
+        void RaisePropertyChanged(String prop)
         {
-            get
+            var tmp = PropertyChanged;
+            if (tmp != null)
             {
-                if (_readonyFiles == null)
-                    _readonyFiles = new ReadOnlyObservableCollection<DocumentBase>(m_documents);
-                return _readonyFiles;
+                tmp(this, new PropertyChangedEventArgs(prop));
             }
         }
 
-        public void SaveAllDocuments()
+        protected virtual void ErrorMessage(Exception ex)
         {
-            foreach(var d in Documents)
-            {
-                d.ConfirmSave();
-            }
+            Console.WriteLine(ex);
         }
-        #endregion
 
-        #region ActiveDocument
-        private DocumentBase _activeDocument = null;
-        public DocumentBase ActiveDocument
+        protected abstract IDocumentContent OpenDocument(String contentId);
+
+        ObservableCollection<IDocumentContent> m_documents;
+        public ObservableCollection<IDocumentContent> Documents
         {
             get
             {
-                return _activeDocument;
+                if (m_documents == null) m_documents = new ObservableCollection<IDocumentContent>();
+                return m_documents;
+            }
+        }
+
+        private IDocumentContent m_activeDocument;
+        public IDocumentContent ActiveDocument
+        {
+            get
+            {
+                return m_activeDocument;
             }
             set
             {
-                if (_activeDocument == value) return;
-                _activeDocument = value;
-                foreach (var t in Tools)
-                {
-                    t.Document = value;
-                }
+                if (m_activeDocument == value) return;
+                m_activeDocument = value;
                 RaisePropertyChanged("ActiveDocument");
             }
         }
-        #endregion
 
-        #region Tools
-        ObservableCollection<ToolContentBase> m_tools = new ObservableCollection<ToolContentBase>();
-        ReadOnlyObservableCollection<ToolContentBase> _readonyTools = null;
-        public ReadOnlyObservableCollection<ToolContentBase> Tools
+        ObservableCollection<IToolContent> m_tools;
+        public ObservableCollection<IToolContent> Tools
         {
             get
             {
-                if (_readonyTools == null)
-                    _readonyTools = new ReadOnlyObservableCollection<ToolContentBase>(m_tools);
-                return _readonyTools;
+                if (m_tools == null) m_tools = new ObservableCollection<IToolContent>();
+                return m_tools;
             }
-        }
-
-        protected void ClearTools()
-        {
-            m_tools.Clear();
-        }
-
-        protected void AddTool(ToolContentBase tool)
-        {
-            m_tools.Add(tool);
-        }
-        #endregion
-
-        ViewModelCommand m_newDocumentCommand;
-        public ICommand NewDocumentCommand
-        {
-            get
-            {
-                if (m_newDocumentCommand == null) m_newDocumentCommand = new ViewModelCommand(() => NewDocument());
-                return m_newDocumentCommand;
-            }
-        }
-
-        ViewModelCommand m_openDocumentCommand;
-        public ICommand OpenDocumentCommand
-        {
-            get
-            {
-                if (m_openDocumentCommand == null) m_openDocumentCommand = new ViewModelCommand(() => OpenDocument());
-                return m_openDocumentCommand;
-            }
-        }
-
-        public abstract DocumentBase CreateDocument();
-        public abstract DocumentBase CreateDocumentFromFilePath(string filepath);
-        protected abstract void InitializeTools();
-
-        protected WorkspaceBase()
-        {
-            CompositeDisposable.Add(() =>
-            {
-                while (Documents.Any())
-                {
-                    Documents.First().Dispose();
-                }
-            });
         }
 
         #region Layout
@@ -167,60 +109,8 @@ namespace AvalonDockUtil
             }
         }
 
-        void MatchLayoutContent(object o, LayoutSerializationCallbackEventArgs e)
-        {
-            if (e.Model is LayoutAnchorable)
-            {
-                // Tool Windows
-                foreach (var tool in Tools)
-                {
-                    if (tool.ContentId == e.Model.ContentId)
-                    {
-                        e.Content = tool;
-                        return;
-                    }
-                }
-
-                // Unknown
-                ErrorDialog(new Exception("unknown ContentID: " + e.Model.ContentId));
-                return;
-            }
-
-            if (e.Model is LayoutDocument)
-            {
-                // load済みを探す
-                foreach (var document in Documents)
-                {
-                    if (document.ContentId == e.Model.ContentId)
-                    {
-                        e.Content = document;
-                        return;
-                    }
-                }
-
-                // Document
-                var path = e.Model.ContentId;
-                if (!String.IsNullOrEmpty(path) && System.IO.File.Exists(path))
-                {
-                    var document = OpenDocumentFromFilePath(path);
-                    e.Content = document;
-                }
-                else
-                {
-                    var document = NewDocument();
-                    e.Content = document;
-                }
-                return;
-            }
-
-            ErrorDialog(new Exception("Unknown Model: " + e.Model.GetType()));
-            return;
-        }
-
         bool LoadLayout(DockingManager dockManager, Byte[] bytes)
         {
-            InitializeTools();
-
             var serializer = new XmlLayoutSerializer(dockManager);
 
             serializer.LayoutSerializationCallback += MatchLayoutContent;
@@ -235,9 +125,51 @@ namespace AvalonDockUtil
             }
             catch (Exception ex)
             {
-                ErrorDialog(ex);
                 return false;
             }
+        }
+
+        void MatchLayoutContent(object o, LayoutSerializationCallbackEventArgs e)
+        {
+            var contentId = e.Model.ContentId;
+
+            if (e.Model is LayoutAnchorable)
+            {
+                // Tool Windows
+                foreach (var tool in Tools)
+                {
+                    if (tool.ContentId == contentId)
+                    {
+                        e.Content = tool;
+                        return;
+                    }
+                }
+
+                // Unknown
+                ErrorMessage(new Exception("unknown ContentID: " + contentId));
+                return;
+            }
+
+            if (e.Model is LayoutDocument)
+            {
+                // load済みを探す
+                foreach (var document in Documents)
+                {
+                    if (document.ContentId == contentId)
+                    {
+                        e.Content = document;
+                        return;
+                    }
+                }
+
+                // Document
+                e.Content = OpenDocument(contentId);
+
+                return;
+            }
+
+            ErrorMessage(new Exception("Unknown Model: " + e.Model.GetType()));
+            return;
         }
 
         public void SaveLayout(DockingManager dockManager)
@@ -255,57 +187,6 @@ namespace AvalonDockUtil
             {
                 doc.Save(stream);
             }
-        }
-        #endregion
-
-        #region DocumentsLogic
-        public DocumentBase NewDocument()
-        {
-            var document = CreateDocument();
-            AddDocument(document);
-            ActiveDocument = document;
-            return document;
-        }
-
-        public DocumentBase OpenDocument()
-        {
-            var response = OpenDialog("Open");
-            if (response == null)
-            {
-                return null;
-            }
-            var document=OpenDocumentFromFilePath(response[0]);
-            ActiveDocument = document;
-            return document;
-        }
-
-        public DocumentBase OpenDocumentFromFilePath(String filepath)
-        {
-            var document = m_documents.FirstOrDefault(fm => fm.FilePath == filepath);
-            if (document == null)
-            {
-                document = CreateDocumentFromFilePath(filepath);
-                if (document==null)
-                {
-                    return null;
-                }
-                AddDocument(document);
-            }
-            ActiveDocument = document;
-            return document;
-        }
-
-        private void AddDocument(DocumentBase document)
-        {
-            document.CompositeDisposable.Add(() =>
-            {
-                if (ActiveDocument == document)
-                {
-                    ActiveDocument = null;
-                }
-                m_documents.Remove(document);
-            });
-            m_documents.Add(document);
         }
         #endregion
     }

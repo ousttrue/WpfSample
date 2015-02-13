@@ -1,105 +1,88 @@
-﻿
-using System.Windows.Media;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Data;
+using Xceed.Wpf.AvalonDock.Converters;
+
 namespace AvalonDockUtil
 {
-    public class ToolContentBase : ViewModelBase, IPaneContent
+    public class ToolContentBase: IToolContent, INotifyPropertyChanged
     {
-        #region IsVisible
-        bool m_isVisible = true;
-        public bool IsVisible
+        public event PropertyChangedEventHandler PropertyChanged;
+        void RaisePropertyChanged(String prop)
         {
-            get { return m_isVisible; }
-            set
+            var tmp = PropertyChanged;
+            if (tmp != null)
             {
-                if (m_isVisible == value) return;
-                m_isVisible = value;
-                RaisePropertyChanged("IsVisible");
+                tmp(this, new PropertyChangedEventArgs(prop));
             }
         }
-        #endregion
 
-        #region Document
-        DocumentBase m_document;
-        public DocumentBase Document
-        {
-            get { return m_document; }
-            set
-            {
-                if(m_document==value)return;
-                m_document = value;
-                RaisePropertyChanged("Document");
-            }
-        }
-        #endregion
-
-        #region Title
-        string m_title;
-        public string Title
-        {
-            get { return m_title; }
-            set
-            {
-                if (m_title == value) return;
-                m_title = value;
-                ContentId = "tool:" + Title;
-                RaisePropertyChanged("Title");
-            }
-        }
-        #endregion
-
-        #region ContentId
         string m_contentId;
+        [ContentProperty]
         public string ContentId
         {
             get { return m_contentId; }
-            private set
+            set
             {
                 if (m_contentId == value) return;
                 m_contentId = value;
                 RaisePropertyChanged("ContentId");
             }
         }
-        #endregion
 
-        #region IsSelected
-        bool m_isSelected;
-        public bool IsSelected
+        String m_title;
+        [ContentProperty]
+        public String Title
         {
-            get { return m_isSelected; }
+            get { return m_title; }
             set
             {
-                if (m_isSelected == value) return;
-                m_isSelected = value;
-                RaisePropertyChanged("IsSelected");
+                if (m_title == value) return;
+                m_title = value;
+                RaisePropertyChanged("Title");
             }
         }
-        #endregion
 
-        #region IsActive
-        bool m_isActive;
-        public bool IsActive
+        Visibility m_visiblity;
+        [ContentProperty(BindingMode=BindingMode.TwoWay)]
+        public Visibility Visibility
         {
-            get { return m_isActive; }
+            get { return m_visiblity; }
             set
             {
-                if (m_isActive == value) return;
-                m_isActive = value;
-                RaisePropertyChanged("IsActive");
+                if (m_visiblity == value) return;
+                m_visiblity = value;
+                RaisePropertyChanged("Visibility");
+                RaisePropertyChanged("IsVisible");
             }
         }
-        #endregion
 
-        #region IconSource
-        ImageSource m_iconSource;
-        public ImageSource IconSource
+        public bool IsVisible
         {
-            get { return null; }
+            get { return m_visiblity == System.Windows.Visibility.Visible; }
+            set
+            {
+                if (IsVisible == value)return;
+                if (value)
+                {
+                    Visibility = System.Windows.Visibility.Visible;
+                }
+                else
+                {
+                    Visibility = System.Windows.Visibility.Hidden;
+                }
+            }
         }
-        #endregion
 
-        public ToolContentBase(string title)
+        public ToolContentBase(String contentId, String title=null)
         {
-            Title = title;
+            m_contentId = contentId;
+            Title = String.IsNullOrEmpty(title) ? contentId : title;
         }
     }
 }
