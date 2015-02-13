@@ -18,6 +18,15 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
     <Window.DataContext>
         <local:MainWindowViewModel />
     </Window.DataContext>
+    
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Unloaded">
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -31,6 +40,16 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
                     </DataTemplate>
                 </MenuItem.ItemTemplate>
             </MenuItem>           
+            
+            <MenuItem Header="レイアウト" >
+                <MenuItem Header="配置を初期化する">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="Click">
+                            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="DefaultLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </MenuItem>
+            </MenuItem>
         </Menu>
 
         <avalonDock:DockingManager x:Name="_dockingManager"
@@ -42,7 +61,20 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
                 <util:ContentPropertyStyleSelector />
             </avalonDock:DockingManager.LayoutItemContainerStyleSelector>
 
-            <avalonDock:LayoutRoot />
+            <avalonDock:LayoutRoot>
+                <avalonDock:LayoutPanel Orientation="Vertical">
+                    <avalonDock:LayoutPanel Orientation="Horizontal">
+                        <avalonDock:LayoutDocumentPane />
+                        
+                        <avalonDock:LayoutAnchorablePane DockWidth="150">
+                            <avalonDock:LayoutAnchorable ContentId="Status" />
+                        </avalonDock:LayoutAnchorablePane>
+                    </avalonDock:LayoutPanel>
+                    <avalonDock:LayoutAnchorablePane DockHeight="70">
+                        <avalonDock:LayoutAnchorable ContentId="Message" />
+                    </avalonDock:LayoutAnchorablePane>
+                </avalonDock:LayoutPanel>
+            </avalonDock:LayoutRoot>
 
         </avalonDock:DockingManager>
     </DockPanel>

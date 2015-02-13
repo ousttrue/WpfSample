@@ -21,16 +21,6 @@ namespace AvalonDockUtil
             }
         }
 
-        protected virtual void ErrorMessage(Exception ex)
-        {
-            Console.WriteLine(ex);
-        }
-
-        protected virtual DocumentContent OpenDocument(String contentId)
-        {
-            return new DocumentContent(contentId);
-        }
-
         ObservableCollection<DocumentContent> m_documents;
         public ObservableCollection<DocumentContent> Documents
         {
@@ -66,7 +56,19 @@ namespace AvalonDockUtil
             }
         }
 
-        #region Layout
+        protected abstract void InitializeTools();
+
+        #region Layout```
+        protected virtual void ErrorMessage(Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+
+        protected virtual DocumentContent OpenDocument(String contentId)
+        {
+            return new DocumentContent(contentId);
+        }
+
         String LayoutFile
         {
             get
@@ -79,9 +81,9 @@ namespace AvalonDockUtil
         }
         Byte[] m_defaultLayout;
 
-        public void LoadDefaultLayout(DockingManager dockManager)
+        public void DefaultLayout(DockingManager dockManager)
         {
-            LoadLayout(dockManager, m_defaultLayout);
+            LoadLayoutFromBytes(dockManager, m_defaultLayout);
         }
 
         public void LoadLayout(DockingManager dockManager)
@@ -106,14 +108,16 @@ namespace AvalonDockUtil
             }
 
             // restore layout
-            if (!LoadLayout(dockManager, bytes))
+            if (!LoadLayoutFromBytes(dockManager, bytes))
             {
                 return;
             }
         }
 
-        bool LoadLayout(DockingManager dockManager, Byte[] bytes)
+        bool LoadLayoutFromBytes(DockingManager dockManager, Byte[] bytes)
         {
+            InitializeTools();
+
             var serializer = new XmlLayoutSerializer(dockManager);
 
             serializer.LayoutSerializationCallback += MatchLayoutContent;

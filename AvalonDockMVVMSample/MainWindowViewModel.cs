@@ -15,10 +15,11 @@ using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
 namespace AvalonDockMVVMSample
 {
-    public class MainWindowViewModel: AvalonDockUtil.WorkspaceBase
+    public class MainWindowViewModel : AvalonDockUtil.WorkspaceBase
     {
-        public MainWindowViewModel()
+        protected override void InitializeTools()
         {
+            Tools.Clear();
             Tools.Add(new MessageToolContent());
             Tools.Add(new StatusToolContent());
         }
