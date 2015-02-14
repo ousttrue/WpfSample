@@ -101,6 +101,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="StatusToolContent.cs" />
+    <Compile Include="UriListDocument.cs" />
     <Compile Include="UriList.xaml.cs">
       <DependentUpon>UriList.xaml</DependentUpon>
     </Compile>

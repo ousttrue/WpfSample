@@ -19,26 +19,11 @@ xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
             <vm:FileDropBehavior Command="{Binding AddItemsCommand}" />
         </i:Interaction.Behaviors>
 
-        <i:Interaction.Triggers>
-            <l:InteractionMessageTrigger MessageKey="Info" Messenger="{Binding Messenger}" >
-                <l:InformationDialogInteractionMessageAction />
-            </l:InteractionMessageTrigger>
-            <l:InteractionMessageTrigger MessageKey="Confirm" Messenger="{Binding Messenger}" >
-                <l:ConfirmationDialogInteractionMessageAction/>
-            </l:InteractionMessageTrigger>
-            <l:InteractionMessageTrigger MessageKey="Open" Messenger="{Binding Messenger}" >
-                <l:OpenFileDialogInteractionMessageAction/>
-            </l:InteractionMessageTrigger>
-            <l:InteractionMessageTrigger MessageKey="Save" Messenger="{Binding Messenger}" >
-                <l:SaveFileDialogInteractionMessageAction/>
-            </l:InteractionMessageTrigger>
-        </i:Interaction.Triggers>
-
         <DockPanel DockPanel.Dock="Top">
             <Menu>
                 <MenuItem Header="Item">
                     <MenuItem Header="Save" IsEnabled="{Binding IsDirty}" Command="{Binding SaveCommand}" />
-                    <MenuItem Header="Add" Command="{Binding AddCommand}" />
+                    <MenuItem Header="Add" Command="{Binding AddDialogCommand}" />
                     <MenuItem Header="Remove" Command="{Binding RemoveSelectedItemCommand}" />
                     <MenuItem Header="Clear" Command="{Binding ClearItemsCommand}"/>
                 </MenuItem>

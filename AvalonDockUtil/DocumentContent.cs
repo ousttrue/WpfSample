@@ -24,12 +24,24 @@ namespace AvalonDockUtil
         public Guid Guid
         {
             get { return m_guid; }
+            set
+            {
+                if (m_guid == value) return;
+                m_guid = value;
+                RaisePropertyChanged("Guid");
+                RaisePropertyChanged("ContentId");
+            }
         }
 
         [ContentProperty]
         public string ContentId
         {
             get { return m_guid.ToString(); }
+            set
+            {
+                var guid = Guid.Parse(value);
+                Guid = guid;
+            }
         }
 
         string m_title;

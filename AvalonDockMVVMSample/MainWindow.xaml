@@ -14,6 +14,9 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
     <Window.Resources>
         <util:ActiveDocumentConverter x:Key="ActiveDocumentConverter"/>
         <avalonDock:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <DataTemplate DataType="{x:Type local:UriListDocument}">
+            <local:UriList DataContext="{Binding ViewModel}"/>
+        </DataTemplate>
     </Window.Resources>
     <Window.DataContext>
         <local:MainWindowViewModel />
@@ -24,13 +27,32 @@ xmlns:avalonDock="http://schemas.xceed.com/wpf/xaml/avalondock"
             <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="LoadLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
         </i:EventTrigger>
         <i:EventTrigger EventName="Unloaded">
+            <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveAllDocuments" />
             <l:LivetCallMethodAction MethodTarget="{Binding}" MethodName="SaveLayout" MethodParameter="{Binding ElementName=_dockingManager}" />
         </i:EventTrigger>
+
+        <l:InteractionMessageTrigger MessageKey="Info" Messenger="{Binding Messenger}" >
+            <l:InformationDialogInteractionMessageAction />
+        </l:InteractionMessageTrigger>
+        <l:InteractionMessageTrigger MessageKey="Confirm" Messenger="{Binding Messenger}" >
+            <l:ConfirmationDialogInteractionMessageAction/>
+        </l:InteractionMessageTrigger>
+        <l:InteractionMessageTrigger MessageKey="Open" Messenger="{Binding Messenger}" >
+            <l:OpenFileDialogInteractionMessageAction/>
+        </l:InteractionMessageTrigger>
+        <l:InteractionMessageTrigger MessageKey="Save" Messenger="{Binding Messenger}" >
+            <l:SaveFileDialogInteractionMessageAction/>
+        </l:InteractionMessageTrigger>
     </i:Interaction.Triggers>
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="表示" ItemsSource="{Binding Tools}">
+            <MenuItem Header="ドキュメント">
+                <MenuItem Header="新規" Command="{Binding NewDocumentCommand}" />
+                <MenuItem Header="開く" Command="{Binding OpenDocumentCommand}" />
+            </MenuItem>
+            
+            <MenuItem Header="ツール" ItemsSource="{Binding Tools}">
                 <MenuItem.ItemTemplate>
                     <DataTemplate>
                         <MenuItem 

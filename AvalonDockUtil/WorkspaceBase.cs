@@ -2,25 +2,17 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Windows.Input;
 using System.Xml;
+using System.Linq;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
 namespace AvalonDockUtil
 {
-    public abstract class WorkspaceBase: INotifyPropertyChanged
+    public abstract class WorkspaceBase: ViewModelBase
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-        void RaisePropertyChanged(String prop)
-        {
-            var tmp = PropertyChanged;
-            if (tmp != null)
-            {
-                tmp(this, new PropertyChangedEventArgs(prop));
-            }
-        }
-
         ObservableCollection<DocumentContent> m_documents;
         public ObservableCollection<DocumentContent> Documents
         {
@@ -58,17 +50,34 @@ namespace AvalonDockUtil
 
         protected abstract void InitializeTools();
 
-        #region Layout```
-        protected virtual void ErrorMessage(Exception ex)
+        protected DocumentContent GetDocumentByContentId(String contentId)
         {
-            Console.WriteLine(ex);
+            return Documents.FirstOrDefault(d => d.ContentId == contentId);
         }
 
-        protected virtual DocumentContent OpenDocument(String contentId)
+        RelayCommand m_newDocumentCommand;
+        public ICommand NewDocumentCommand
         {
-            return new DocumentContent(contentId);
+            get
+            {
+                if (m_newDocumentCommand == null)
+                {
+                    m_newDocumentCommand = new RelayCommand(() =>
+                    {
+                        var document=NewDocument();
+                        Documents.Add(document);
+                    });
+                }
+                return m_newDocumentCommand;
+            }
         }
 
+        public virtual DocumentContent NewDocument()
+        {
+            return new DocumentContent();
+        }
+
+        #region Layout
         String LayoutFile
         {
             get
@@ -108,10 +117,7 @@ namespace AvalonDockUtil
             }
 
             // restore layout
-            if (!LoadLayoutFromBytes(dockManager, bytes))
-            {
-                return;
-            }
+            LoadLayoutFromBytes(dockManager, bytes);
         }
 
         bool LoadLayoutFromBytes(DockingManager dockManager, Byte[] bytes)
@@ -128,6 +134,9 @@ namespace AvalonDockUtil
                 {
                     serializer.Deserialize(stream);
                 }
+
+                RestoreDocumentsFromBytes(bytes);
+
                 return true;
             }
             catch (Exception ex)
@@ -153,7 +162,7 @@ namespace AvalonDockUtil
                 }
 
                 // Unknown
-                ErrorMessage(new Exception("unknown ContentID: " + contentId));
+                ErrorDialog(new Exception("unknown ContentID: " + contentId));
                 return;
             }
 
@@ -170,14 +179,22 @@ namespace AvalonDockUtil
                 }
 
                 // Document
-                e.Content = OpenDocument(contentId);
+                {
+                    var document = NewDocument();
+                    Documents.Add(document);
+                    document.ContentId = contentId;
+                    e.Content = document;
+                }
 
                 return;
             }
 
-            ErrorMessage(new Exception("Unknown Model: " + e.Model.GetType()));
+            ErrorDialog(new Exception("Unknown Model: " + e.Model.GetType()));
             return;
         }
+
+        protected abstract void ModifySerializedXml(XmlDocument doc);
+        protected abstract void RestoreDocumentsFromBytes(Byte[] bytes);
 
         public void SaveLayout(DockingManager dockManager)
         {
@@ -189,6 +206,8 @@ namespace AvalonDockUtil
                 stream.Position = 0;
                 doc.Load(stream);
             }
+
+            ModifySerializedXml(doc);
 
             using (var stream = new FileStream(LayoutFile, FileMode.Create))
             {

@@ -139,7 +139,7 @@ namespace UriListViewModel
         public String Path
         {
             get { return m_path; }
-            protected set
+            set
             {
                 if (m_path == value) return;
                 m_path = value;
@@ -147,7 +147,7 @@ namespace UriListViewModel
             }
         }
 
-        void Save(bool saveAs)
+        public void Save(bool saveAs)
         {
             // 保存する
             if (saveAs || String.IsNullOrEmpty(Path))
@@ -173,7 +173,7 @@ namespace UriListViewModel
             }
         }
 
-        protected void Load()
+        public void Load()
         {
             try
             {
@@ -209,16 +209,18 @@ namespace UriListViewModel
             {
                 if (m_openCommand == null)
                 {
-                    m_openCommand = new ViewModelCommand(() =>
-                    {
-                        var path = OpenDialog("Open");
-                        if (path == null) return;
-                        Path = path[0];
-                        Load();
-                    });
+                    m_openCommand = new ViewModelCommand(()=>Open());
                 }
                 return m_openCommand;
             }
+        }
+        public bool Open()
+        {
+            var path = OpenDialog("Open", false);
+            if (path == null) return false;
+            Path = path[0];
+            Load();
+            return true;
         }
         #endregion
 
@@ -245,8 +247,13 @@ namespace UriListViewModel
         }
         #endregion
 
-        public UriListViewModel()
+        public UriListViewModel(InteractionMessenger messenger=null)
         {
+            if (messenger != null)
+            {
+                Messenger = messenger;
+            }
+
             CompositeDisposable.Add(OnDispose);
         }
 
