@@ -247,7 +247,12 @@ namespace UriListViewModel
         }
         #endregion
 
-        public UriListViewModel(InteractionMessenger messenger=null)
+        public UriListViewModel()
+            :this(null)
+        {
+        }
+
+        public UriListViewModel(InteractionMessenger messenger = null)
         {
             if (messenger != null)
             {
