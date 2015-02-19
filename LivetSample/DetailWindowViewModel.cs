@@ -92,7 +92,7 @@ namespace LivetSample
             {
                 if (m_inputName == value) return;
                 m_inputName = value;
-                if (String.IsNullOrEmpty(value.Trim()))
+                if (value==null || String.IsNullOrEmpty(value.Trim()))
                 {
                     m_errors["InputName"] = "名前は必須です";
                 }
@@ -163,7 +163,29 @@ namespace LivetSample
                         // Viewに画面遷移用メッセージを送信しています。
                         // Viewは対応するメッセージキーを持つInteractionTransitionMessageTriggerでこのメッセージを受信します。
                         Messenger.Raise(new Livet.Messaging.Windows.WindowActionMessage(Livet.Messaging.Windows.WindowAction.Close, "Close"));
+                    },
+                    () =>
+                    {
+                        if(!String.IsNullOrEmpty(Error)){
+                            return false;
+                        }
+                        if(String.IsNullOrEmpty(InputName)){
+                            return false;
+                        }
+                        if(String.IsNullOrEmpty(InputBirthday)){
+                            return false;
+                        }
+                        return true;
                     });
+
+                    // CanExecuteの更新
+                    PropertyChanged += (o, e) =>
+                    {
+                        if (e.PropertyName == "Error")
+                        {
+                            m_saveCommand.RaiseCanExecuteChanged();
+                        }
+                    };
                 }
                 
                 return m_saveCommand;
@@ -192,7 +214,11 @@ namespace LivetSample
         }
 
         #region IDataErrorInfo
-        Dictionary<String, String> m_errors = new Dictionary<string, string>();
+        Dictionary<String, String> m_errors = new Dictionary<string, string>
+        {
+            {"InputName", null}, {"InputBirthday", null}
+        };
+
 
         public string Error
         {
@@ -200,13 +226,13 @@ namespace LivetSample
             {
                 var list = new List<String>();
 
-                if (String.IsNullOrEmpty("InputName"))
+                if (!String.IsNullOrEmpty(this["InputName"]))
                 {
                     list.Add("名前");
                 }
-                if (String.IsNullOrEmpty("InputBirthday"))
+                if (!String.IsNullOrEmpty(this["InputBirthday"]))
                 {
-                    list.Add("成年月日");
+                    list.Add("生年月日");
                 }
                 if (!list.Any())
                 {
