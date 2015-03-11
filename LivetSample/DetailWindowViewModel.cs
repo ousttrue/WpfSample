@@ -49,6 +49,7 @@ namespace LivetSample
                         RaisePropertyChanged("Age");
                     }
                 });
+            CompositeDisposable.Add(m_weak);
         }
 
         public String Name

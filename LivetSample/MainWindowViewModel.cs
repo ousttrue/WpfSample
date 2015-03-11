@@ -34,6 +34,7 @@ namespace LivetSample
                         , m =>new MemberViewModel(m, this)
                         , Livet.DispatcherHelper.UIDispatcher
                         );
+                    CompositeDisposable.Add(m_members);
                 }
                 return m_members;
             }
